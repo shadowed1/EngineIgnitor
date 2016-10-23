@@ -1,0 +1,27 @@
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\EngineIgnitor.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\EngineIgnitor.pdb
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\Assembly-CSharp-firstpass.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\Assembly-CSharp.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\KSPUtil.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\UnityEngine.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\UnityEngine.UI.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\SaveUpgradePipeline.Core.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\TrackIRUnity.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\KSPAssets.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\Mono.Cecil.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\Vectrosity.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\TDx.TDxInput.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\Mono.Security.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\bin\Debug\UnityEngine.xml
+D:\Modding\engine ignitor\EngineIgnitor-master\obj\Debug\EngineIgnitor.dll
+D:\Modding\engine ignitor\EngineIgnitor-master\obj\Debug\EngineIgnitor.pdb
+E:\DennyTX\Documents\Visual Studio 2013\Projects\_EXT\EngineIgnitor-source.112\obj\Debug\EngineIgnitor.dll
+E:\DennyTX\Documents\Visual Studio 2013\Projects\_EXT\EngineIgnitor-source.112\obj\Debug\EngineIgnitor.pdb
+E:\DennyTX\Documents\Visual Studio 2013\Projects\_120\EngineIgnitor\obj\Debug\EngineIgnitor.dll
+E:\DennyTX\Documents\Visual Studio 2013\Projects\_120\EngineIgnitor\obj\Debug\EngineIgnitor.pdb
+D:\KSP_120_test\GameData\OLDD\EngineIgnitor\EngineIgnitor.dll
+D:\KSP_120_test\GameData\OLDD\EngineIgnitor\EngineIgnitor.pdb
+E:\DennyTX\Documents\Visual Studio 2013\Projects\_120\EngineIgnitor — копия\obj\Debug\EngineIgnitor.dll
+E:\DennyTX\Documents\Visual Studio 2013\Projects\_120\EngineIgnitor — копия\obj\Debug\EngineIgnitor.pdb
+D:\KSP_120_test\GameData\OLDD\EngineIgnitor\MM_Configs\MM_EngineIgnitor.cfg
+E:\DennyTX\Documents\Visual Studio 2013\Projects\_120\EngineIgnitor\obj\Debug\EngineIgnitor.csprojResolveAssemblyReference.cache
