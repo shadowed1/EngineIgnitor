@@ -24,10 +24,8 @@ namespace EngineIgnitor
 		{
 			get
 			{
-				if(isModuleEngineFX == false)
-					return engine.vessel;
-				else
-					return engineFX.vessel;
+				if(isModuleEngineFX == false) return engine.vessel;
+    			return engineFX.vessel;
 			}
 		}
 
@@ -43,10 +41,8 @@ namespace EngineIgnitor
         {
             get
             {
-                if (isModuleEngineFX == false)
-                    return engine.EngineIgnited;
-                else
-                    return engineFX.EngineIgnited;
+                if (isModuleEngineFX == false) return engine.EngineIgnited;
+                return engineFX.EngineIgnited;
             }
             //set { engineFX.EngineIgnited = value; }
         }
@@ -55,10 +51,8 @@ namespace EngineIgnitor
         {
             get
             {
-                if (isModuleEngineFX == false)
-                    return engine.status;
-                else
-                    return engineFX.status;
+                if (isModuleEngineFX == false) return engine.status;
+                return engineFX.status;
             }
         }
  
@@ -67,10 +61,8 @@ namespace EngineIgnitor
 		{
 			get
 			{
-				if (isModuleEngineFX == false)
-					return engine.requestedThrottle;
-				else
-					return engineFX.requestedThrottle;
+				if (isModuleEngineFX == false) return engine.requestedThrottle;
+				return engineFX.requestedThrottle;
 			}
 		}
 
@@ -78,10 +70,8 @@ namespace EngineIgnitor
 		{
 			get
 			{
-				if (isModuleEngineFX == false)
-					return engine.throttleLocked;
-				else
-					return engineFX.throttleLocked;
+				if (isModuleEngineFX == false) return engine.throttleLocked;
+				return engineFX.throttleLocked;
 			}
 		}
 
@@ -89,10 +79,8 @@ namespace EngineIgnitor
 		{
 			get
 			{
-				if (isModuleEngineFX == false)
-					return engine.propellants;
-				else
-					return engineFX.propellants;
+				if (isModuleEngineFX == false) return engine.propellants;
+				return engineFX.propellants;
 			}
 		}
 
@@ -100,10 +88,8 @@ namespace EngineIgnitor
 		{
 			get
 			{
-				if (isModuleEngineFX == false)
-					return engine.part;
-				else
-					return engineFX.part;
+				if (isModuleEngineFX == false) return engine.part;
+				return engineFX.part;
 			}
 		}
 
@@ -111,10 +97,8 @@ namespace EngineIgnitor
 		{
 			get
 			{
-				if (isModuleEngineFX == false)
-					return engine.Events;
-				else
-					return engineFX.Events;
+				if (isModuleEngineFX == false) return engine.Events;
+				return engineFX.Events;
 			}
 		}
 
@@ -130,10 +114,8 @@ namespace EngineIgnitor
 		{
 			get
 			{
-				if (isModuleEngineFX == false)
-					return engine.allowShutdown;
-				else
-					return engineFX.allowShutdown;
+				if (isModuleEngineFX == false) return engine.allowShutdown;
+				return engineFX.allowShutdown;
 			}
 		}
 
@@ -141,10 +123,8 @@ namespace EngineIgnitor
 		{ 
 			get
 			{
-				if (isModuleEngineFX == false)
-					return engine.flameout;
-				else
-					return engineFX.getFlameoutState;
+				if (isModuleEngineFX == false) return engine.flameout;
+				return engineFX.getFlameoutState;
 			}
 		}
 	}

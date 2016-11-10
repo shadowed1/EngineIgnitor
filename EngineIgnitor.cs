@@ -1,55 +1,25 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using KSP.IO;
 using UnityEngine;
 
 namespace EngineIgnitor
 {
-	[Serializable]
-	public class IgnitorResource : IConfigNode
+    public class OnboardIgnitorResource
+    {
+        public int Id;
+        public string Name;
+        public float Request;
+        public double Amount;
+        public double MaxAmount;
+    }
+
+    public class ModuleEngineIgnitor : PartModule
 	{
-		[SerializeField]
-		public string name;
-		[SerializeField]
-		public float amount;
+        private bool _isEngineMouseOver;
 
-		public float currentAmount;
-
-        public void Load(ConfigNode node)
-		{
-			name = node.GetValue("name");
-			if (node.HasValue("amount"))
-			{
-				amount = Mathf.Max(0.0f, float.Parse(node.GetValue("amount")));
-			}
-		}
-
-		public void Save(ConfigNode node)
-		{
-			node.AddValue("name", name);
-			node.AddValue("amount", Mathf.Max(0.0f, amount));
-		}
-
-		public override string ToString()
-		{
-			return name + "(" + amount.ToString("F3") + ")";
-		}
-
-		public static IgnitorResource FromString(string str)
-		{
-			IgnitorResource ir = new IgnitorResource();
-			int indexL = str.LastIndexOf('('); int indexR = str.LastIndexOf(')');
-			ir.name = str.Substring(0, indexL);
-			ir.amount = float.Parse(str.Substring(indexL + 1, indexR - indexL - 1));
-			return ir;
-		}
-	}
-
-	public class ModuleEngineIgnitor : PartModule
-	{
-		public enum EngineIgnitionState
+        public enum EngineIgnitionState
 		{
 			INVALID = -1,
 			NOT_IGNITED = 0,
@@ -57,176 +27,130 @@ namespace EngineIgnitor
 			IGNITED = 2,
 		}
 
-        private double HypergolicFluidAmount = 0;
-        private double HypergolicFluidMaxAmount = 0;
-        private double HypergolicFluidAmountEVA = 0;
-        private double HypergolicFluidMaxAmountEVA = 0;
-        private double HypergolicFluidRemains = 0;
-        private double EngineIgnitorsAmount;
-        private double EngineIgnitorsMaxAmount;
-        private double EngineIgnitorsAmountEVA;
-        private double EngineIgnitorsMaxAmountEVA;
-        private double ElectricChargeAmount = 0f;
-        private double ElectricChargeMaxAmount = 0f;
+	    public bool InRange;
+	    public bool IsExternal;
 
-        private bool _ignited = false;
-        private bool m_isEngineMouseOver = false;
-
-        private float fuelFlowStability;
+        private double _hypergolicFluidAmount = 0;
+        private double _hypergolicFluidMaxAmount = 0;
 
         [KSPField(isPersistant = false)]
-        public int ignitionsAvailable = -1; //-1: Infinite. 0: Unavailable. 1~...: As is.
+        public int IgnitionsAvailable = -1; //-1: Infinite. 0: Unavailable. 1~...: As is.
 
         [KSPField(isPersistant = true)]
-        public int ignitionsRemained = -1;
+        public int IgnitionsRemained = -1;
 
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Ignitions")]
-        public string ignitionsAvailableString = "Infinite";
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Ignitions")]
+        public string IgnitionsAvailableString = "";
 
 		[KSPField(isPersistant = false)]
-        public float autoIgnitionTemperature = 800;
+        public float AutoIgnitionTemperature = 800;
 
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Auto-Ignite")]
-        public string autoIgnitionState = "?/800";
+        public string AutoIgnitionState = "?/800";
 
-		// In case we have multiple engines...
-		[KSPField(isPersistant = false)]
-        public int engineIndex = 0;
+        // In case we have multiple engines...
+        [KSPField(isPersistant = false)]
+        public int EngineIndex = 0;
+
+        [KSPField(isPersistant = false)]
+        public string IgnitorType = "T0";
 
 		[KSPField(isPersistant = false)]
-        public string ignitorType = "T0";
-
-		[KSPField(isPersistant = false)]
-        public bool useUllageSimulation;
+        public bool UseUllageSimulation = true;
 
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Flow")]
-        public string ullageState;
+        public string UllageState;
 
         [KSPField]
-        public float chanceWhenUnstable;
-
-        [KSPField]
-        public int ECforIgnition = 2;
+        public float ChanceWhenUnstable = 0.2f;
+        private float _fuelFlowStability;
+        private float _oldFuelFlowStability;
 
         // List of all engines. So we can pick the one we are corresponding to.
-        private List<EngineWrapper> engines = new List<EngineWrapper>();
-
-		// And that's it.
-		private EngineWrapper engine = null;
+        private List<EngineWrapper> _engines = new List<EngineWrapper>();
+		private EngineWrapper _engine = null;
 
 		// A state for the FSM.
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Engine State")]
-		private EngineIgnitionState engineState = EngineIgnitionState.INVALID;
+		private EngineIgnitionState _engineState = EngineIgnitionState.INVALID;
 
-		private StartState m_startState = StartState.None;
+		private StartState _startState = StartState.None;
 
-		public List<string> ignitorResourcesStr;
-		public List<IgnitorResource> ignitorResources;
+		public List<string> IgnitorResourcesStr;
+		public List<IgnitorResource> IgnitorResources;
 
-		public override void OnStart(StartState state)
-		{
-			m_startState = state;
-			engines.Clear();
-			foreach (PartModule module in this.part.Modules)
+        public override void OnStart(StartState state)
+        {
+            _startState = state;
+			_engines.Clear();
+			foreach (PartModule module in part.Modules)
 			{
 				if (module is ModuleEngines)
 				{
-					engines.Add(new EngineWrapper(module as ModuleEngines));
+					_engines.Add(new EngineWrapper(module as ModuleEngines));
 				}
-                //else
 				if (module is ModuleEnginesFX)
 				{
-					engines.Add(new EngineWrapper(module as ModuleEnginesFX));
+					_engines.Add(new EngineWrapper(module as ModuleEnginesFX));
 				}
 			}
-			if (engines.Count > engineIndex)
-				engine = engines[engineIndex];
-			else
-				engine = null;
+			_engine = _engines.Count > EngineIndex ? _engines[EngineIndex] : null;
 
-			if (state == StartState.Editor)
-				ignitionsRemained = ignitionsAvailable;
-
-			if (useUllageSimulation == false)
-				ullageState = "Very Stable";
-
-			ignitorResources.Clear();
-			foreach (string str in ignitorResourcesStr)
-				ignitorResources.Add(IgnitorResource.FromString(str));
-		}
+			if (state == StartState.Editor) IgnitionsRemained = IgnitionsAvailable;
+             
+            IgnitorResources.Clear();
+            foreach (string str in IgnitorResourcesStr) IgnitorResources.Add(IgnitorResource.FromString(str));
+        }
 
 		public override void OnAwake()
 		{
 			base.OnAwake();
-			if (ignitorResources == null)
-				ignitorResources = new List<IgnitorResource>();
-			if (ignitorResourcesStr == null)
-				ignitorResourcesStr = new List<string>();
+			if (IgnitorResources == null) IgnitorResources = new List<IgnitorResource>();
+			if (IgnitorResourcesStr == null) IgnitorResourcesStr = new List<string>();
 		}
 
 		public override string GetInfo()
 		{
-			if (ignitionsAvailable != -1)
-				return "Can ignite for " + ignitionsAvailable + " time(s).\n" + "Ignitor type: " + ignitorType + "\n";
-			else
-				return "Can ignite for infinite times.\n" + "Ignitor type: " + ignitorType + "\n";
+			if (IgnitionsAvailable != -1)
+                return "Can ignite for " + IgnitionsAvailable + " time(s).\n" + "Ignitor type: " + IgnitorType + "\n";
+			return "Can ignite for infinite times.\n" + "Ignitor type: " + IgnitorType + "\n";
 		}
 
 		public void OnMouseEnter()
 		{
-			if (HighLogic.LoadedSceneIsEditor)
-			{
-				m_isEngineMouseOver = true;
-			}
+			if (HighLogic.LoadedSceneIsEditor) _isEngineMouseOver = true;
+			
 		}
 
 		public void OnMouseExit()
 		{
-			if (HighLogic.LoadedSceneIsEditor)
-			{
-				m_isEngineMouseOver = false;
-			}
+			if (HighLogic.LoadedSceneIsEditor) _isEngineMouseOver = false;
 		}
 
-        void OnGUI()
+	    void OnGUI()
         {
-            //Debug.Log("ModuleEngineIgnitor: OnGUI() " + ignitorResources.Count.ToString());
-            if (m_isEngineMouseOver == false) return;
+            if (_isEngineMouseOver == false) return;
 
             string ignitorInfo = "Ignitor: ";
-            if (ignitionsRemained == -1)
-                ignitorInfo += ignitorType + "(Infinite).";
-            else
-                ignitorInfo += ignitorType + " (" + ignitionsRemained + ").";
+
+            if (IgnitionsRemained == -1) ignitorInfo += IgnitorType + "(Infinite).";
+            else ignitorInfo += IgnitorType + " (" + IgnitionsRemained + ").";
 
             string resourceRequired = "No resource requirement for ignition.";
-            if (ignitorResources.Count > 0)
+
+            if (IgnitorResources.Count > 0)
             {
                 resourceRequired = "Ignition requires: ";
-                for (int i = 0; i < ignitorResources.Count; ++i)
+                for (int i = 0; i < IgnitorResources.Count; ++i)
                 {
-                    IgnitorResource resource = ignitorResources[i];
-                    resourceRequired += resource.name + "(" + resource.amount.ToString("F1") + ")";
-                    if (i != ignitorResources.Count - 1)
-                    {
-                        resourceRequired += ", ";
-                    }
-                    else
-                    {
-                        resourceRequired += ".";
-                    }
+                    IgnitorResource resource = IgnitorResources[i];
+                    resourceRequired += resource.Name + "(" + resource.Amount.ToString("F1") + ")";
+                    if (i != IgnitorResources.Count - 1) resourceRequired += ", ";
+                    else resourceRequired += ".";
                 }
             }
 
-            string ullageInfo;
-            if (useUllageSimulation)
-            {
-                ullageInfo = "Need settling down fuel before ignition.";
-            }
-            else
-            {
-                ullageInfo = "Ullage simulation disabled.";
-            }
+            var ullageInfo = UseUllageSimulation ? "Need settling down fuel before ignition." : "Ullage simulation disabled.";
 
             Vector2 screenCoords = Camera.main.WorldToScreenPoint(part.transform.position);
             Rect ignitorInfoRect = new Rect(screenCoords.x - 100.0f, Screen.height - screenCoords.y - 10, 200.0f, 20.0f);
@@ -240,260 +164,255 @@ namespace EngineIgnitor
             GUI.Label(ullageInfoRect, ullageInfo, ignitorInfoStyle);
         }
 
-		public override void OnUpdate()
-		{
-			if (m_startState == StartState.None || m_startState == StartState.Editor) return;
-            if (engine == null) return;
-            if (engine.allowShutdown == false) return;
+        private void Update()
+        {
+            if (!HighLogic.LoadedSceneIsFlight || _engine == null || !_engine.allowShutdown) return;
 
-            if (ignitionsRemained != -1)
-				ignitionsAvailableString = ignitorType + " - [" + ignitionsRemained + "/" + ignitionsAvailable +"]";
-			else
-				ignitionsAvailableString = ignitorType + " - " + "Infinite";
-
-			if (part != null)
-				autoIgnitionState = part.temperature.ToString("F1") + "/" + autoIgnitionTemperature.ToString("F1");
-			else
-				autoIgnitionState = "?/" + autoIgnitionTemperature.ToString("F1");
-
-            int EngineIgnitorsId = PartResourceLibrary.Instance.GetDefinition("EngineIgnitors").id;
-            part.GetConnectedResourceTotals(EngineIgnitorsId, out EngineIgnitorsAmount, out EngineIgnitorsMaxAmount);
-
-            int HypergolicFluidId = PartResourceLibrary.Instance.GetDefinition("HypergolicFluid").id;
-            engine.part.GetConnectedResourceTotals(HypergolicFluidId, out HypergolicFluidAmount, out HypergolicFluidMaxAmount);
-
-            int ElectricityId = PartResourceLibrary.Instance.GetDefinition("ElectricCharge").id;
-            part.GetConnectedResourceTotals(ElectricityId, out ElectricChargeAmount, out ElectricChargeMaxAmount);
-
-            if (FlightGlobals.ActiveVessel != null)
+            if (vessel.Landed)
             {
-                Events["ReloadIgnitor"].guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
-                Events["ReloadIgnitor"].guiName = "Reload Ignitor (" + ignitionsAvailableString + ")";
-                Events["ReloadHypergolicFluid"].guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
-                Events["ReloadHypergolicFluid"].guiName = "Reload Hypergolic Fluid (" + HypergolicFluidAmount + "/" + HypergolicFluidMaxAmount + ")";
+                IsExternal = CheckExternalIgnitor();
+                if (IsExternal)
+                    IgnitionsAvailableString = "Provided from Ground" + " - [ " + IgnitionsRemained + "/" + IgnitionsAvailable + " ]";
+                else if (IgnitionsRemained != -1)
+                    IgnitionsAvailableString = IgnitorType + " - [ " + IgnitionsRemained + "/" + IgnitionsAvailable + " ]";
+            }
+            else
+               IsExternal = false;
+
+            if (part != null)
+				AutoIgnitionState = part.temperature.ToString("F1") + "/" + AutoIgnitionTemperature.ToString("F1");
+			else
+				AutoIgnitionState = "?/" + AutoIgnitionTemperature.ToString("F1");
+
+		    var totalRes = new List<OnboardIgnitorResource>();
+		    for (int i = 0; i < IgnitorResources.Count; i++)
+		    {
+		        double resourceAmount = 0f;
+                double resourceMaxAmount = 0f;
+                int resourceId = PartResourceLibrary.Instance.GetDefinition(IgnitorResources[i].Name).id;
+		        if (part != null) part.GetConnectedResourceTotals(resourceId, out resourceAmount, out resourceMaxAmount);
+		        var foundResource = new OnboardIgnitorResource
+		        {
+		            Id = resourceId,
+                    Name = IgnitorResources[i].Name,
+                    Request = IgnitorResources[i].Amount,
+                    Amount = resourceAmount,
+		            MaxAmount = resourceMaxAmount
+		        };
+		        totalRes.Add(foundResource);
             }
 
-            float oldFuelFlowStability = fuelFlowStability;
-		    CheckUllageSimulation();
-
-            bool externalIgnitorAvailable = CheckExternalIgnitor();
-
-            EngineIgnitionState oldState = engineState;
-            // Decide new state.
-            if (engine.requestedThrust <= 0.0f || engine.flameout == true || (engine.EngineIgnited == false && engine.allowShutdown == true))
+            int hypergolicFluidId = PartResourceLibrary.Instance.GetDefinition("HypergolicFluid").id;
+		    if (part != null)
+		        part.GetConnectedResourceTotals(hypergolicFluidId, out _hypergolicFluidAmount, out _hypergolicFluidMaxAmount);
+		    if (FlightGlobals.ActiveVessel != null)
             {
-                if (engine.part.temperature >= autoIgnitionTemperature)
-				{
-					engineState = EngineIgnitionState.HIGH_TEMP;
-				}
-				else
-				{
-					engineState = EngineIgnitionState.NOT_IGNITED;
-				}
-			}
+                Events["ReloadIgnitor"].guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
+                Events["ReloadIgnitor"].guiName = "Reload Ignitor (" + IgnitionsAvailableString + ")";
+                Events["ReloadHypergolicFluid"].guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
+                Events["ReloadHypergolicFluid"].guiName = "Reload Hypergolic Fluid (" + _hypergolicFluidAmount + "/" + _hypergolicFluidMaxAmount + ")";
+            }
+
+            var oldState = _engineState;
+            DecideNewState(oldState);
+
+            _oldFuelFlowStability = _fuelFlowStability;
+            CheckUllageState();
+
+            var isIgnited = IgnitionProcess(oldState, IsExternal, totalRes);
+
+            IgnitionResult(IsExternal, isIgnited);
+        }
+
+        private void DecideNewState(EngineIgnitionState oldState)
+        {
+            if (_engine.requestedThrust <= 0.0f || _engine.flameout || (_engine.EngineIgnited == false && _engine.allowShutdown))
+            {
+                if (_engine.part.temperature >= AutoIgnitionTemperature)
+                    _engineState = EngineIgnitionState.HIGH_TEMP;
+                else
+                    _engineState = EngineIgnitionState.NOT_IGNITED;
+            }
             else
             {
                 if (oldState != EngineIgnitionState.IGNITED)
-				{
-					//When changing from not-ignited to ignited, we must ensure that the throttle is non-zero or locked (SRBs)
-					if (vessel.ctrlState.mainThrottle > 0.0f || engine.throttleLocked == true)
-					{
-						engineState = EngineIgnitionState.IGNITED;
-					}
-				}
-			}
+                {
+                    //When changing from not-ignited to ignited, we must ensure that the throttle is non-zero or locked (SRBs)
+                    if (vessel.ctrlState.mainThrottle > 0.0f || _engine.throttleLocked)
+                        _engineState = EngineIgnitionState.IGNITED;
+                }
+            }
+        }
 
-            // This flag is for low-resource state.
-            bool preferShutdown = false;
+        private void CheckUllageState()
+        {
+            if (UseUllageSimulation)
+            {
+                if (vessel.geeForce_immediate >= 0.01 || vessel.Landed)
+                {
+                    UllageState = "Stable";
+                    _fuelFlowStability = 1.0f;
+                    //return true;
+                }
+                UllageState = "UnStable (Chance " + ChanceWhenUnstable + ")";
+                _fuelFlowStability = ChanceWhenUnstable;
+                //return false;
+            }
+            UllageState = "Very Stable";
+            _fuelFlowStability = 1.0f;
+            //return true;
+        }
 
-		    // Here comes the state transition process.
-			if (oldState == EngineIgnitionState.NOT_IGNITED && engineState == EngineIgnitionState.IGNITED)
-			{
-				if (ignitionsRemained > 0 || ignitionsRemained == -1 || externalIgnitorAvailable == true)
-				{
-                    if (externalIgnitorAvailable == false)
+        private bool IgnitionProcess(EngineIgnitionState oldState, bool isExternal, List<OnboardIgnitorResource> aaa)
+        {
+            if (oldState == EngineIgnitionState.NOT_IGNITED && _engineState == EngineIgnitionState.IGNITED)
+            {
+                if (isExternal)
+                {
+                    IgnitionsRemained--;
+                    return true;
+                }
+
+                if (IgnitionsRemained > 0 || IgnitionsRemained == -1)
+                {
+                    IgnitionsRemained--;
+                    if (IgnitorResources.Count > 0)
                     {
-                        if (ignitionsRemained > 0 && HypergolicFluidAmount > 0)
+                        string aa = null;
+                        foreach (var a in aaa)
                         {
-                            ignitionsRemained--;
-                            part.RequestResource(ElectricityId, ECforIgnition);
-                        }
-                    }
-
-                    if (ignitorResources.Count > 0)
-					{
-                        if (!externalIgnitorAvailable) // == true && externalIgnitor.provideRequiredResources == true))
-						{
-							foreach (IgnitorResource resource in ignitorResources)
-							{
-							    if (HypergolicFluidAmount >= resource.amount)
-							    {
-                                    resource.currentAmount = part.RequestResource(resource.name, resource.amount);
-                                    if (ignitionsRemained == 0 && (HypergolicFluidAmount - resource.amount) > 0)
-                                    {
-                                        HypergolicFluidRemains = HypergolicFluidAmount - resource.amount;
-                                    }
-                                }
-							    else
-							    {
-                                    engineState = EngineIgnitionState.NOT_IGNITED;
-                                    preferShutdown = true;
-                                }
+                            if (a.Amount >= a.Request)
+                                part.RequestResource(a.Id, a.Request);
+                            else
+                            {
+                                aa = a.Name;
+                                break;
                             }
                         }
-                    }
-
-                    float minPotential = 1.0f;
-                    if (useUllageSimulation == true)
-                    {
-                        minPotential *= oldFuelFlowStability;
-                        _ignited = UnityEngine.Random.Range(0.0f, 1.0f) <= minPotential;
-                        if (_ignited == false)
+                        if (aa != null)
                         {
-                            engineState = EngineIgnitionState.NOT_IGNITED;
-                            preferShutdown = true;
+                            ScreenMessages.PostScreenMessage("DO NOT HAVE ENOUGH " + aa, 3f, ScreenMessageStyle.UPPER_CENTER);
+                            _engineState = EngineIgnitionState.NOT_IGNITED;
+                            return false;
                         }
                     }
                 }
-            }
-			else if (oldState == EngineIgnitionState.HIGH_TEMP && engineState == EngineIgnitionState.IGNITED)
-			{ 
-				// Yeah we can auto-ignite without consuming ignitor.
-				engineState = EngineIgnitionState.IGNITED;
-			}
 
-            // Finally we need to handle the thrust generation. i.e. forcibly shutdown the engine when needed. WARNINGS.
-            if (engineState == EngineIgnitionState.NOT_IGNITED && ((ignitionsRemained == 0 && externalIgnitorAvailable == false) || preferShutdown == true))
-			{
-                if (engine.EngineIgnited == true)
+                float minPotential = 1.0f;
+                if (UseUllageSimulation)
                 {
-                    engine.BurstFlameoutGroups();
-					engine.SetRunningGroupsActive(false);
-
-                    if (oldState != EngineIgnitionState.IGNITED)
+                    minPotential *= _oldFuelFlowStability;
+                    var chance = UnityEngine.Random.Range(0.0f, 1.0f);
+                    var attempt = chance <= minPotential;
+                    if (!attempt)
                     {
-                        part.RequestResource(ElectricityId, ECforIgnition);
-                        if (HypergolicFluidAmount == 0 && ignitionsRemained > 0)
-                        {
-                            ignitionsRemained--;
-                        }
-                        if (HypergolicFluidRemains != 0)
-                        {
-                            foreach (IgnitorResource resource in ignitorResources)
-                            {
-                                resource.currentAmount = part.RequestResource(resource.name, resource.amount);
-                            }
-                        }
+                        ScreenMessages.PostScreenMessage("FAILED BECAUSE OF FUEL FLOW UNSTABILITY", 3f, ScreenMessageStyle.UPPER_CENTER);
+                        _engineState = EngineIgnitionState.NOT_IGNITED;
+                        return false;
                     }
-                    if (ignitionsRemained == 0)
-                        ScreenMessages.PostScreenMessage("NO AVAILABLE IGNITIONS", 3f, ScreenMessageStyle.UPPER_CENTER);
-                    if (HypergolicFluidAmount == 0)
-                        ScreenMessages.PostScreenMessage("NOT IGNITED BECAUSE OF LUCK OF HYPERGOLIC", 3f, ScreenMessageStyle.UPPER_CENTER);
-                    if (useUllageSimulation && !_ignited)
-                        ScreenMessages.PostScreenMessage("NOT IGNITED BECAUSE OF FUEL FLOW UNSTABILITY", 3f, ScreenMessageStyle.UPPER_CENTER);
-
-                    foreach (BaseEvent baseEvent in engine.Events)
-					{
-						if (baseEvent.name.IndexOf("shutdown", StringComparison.CurrentCultureIgnoreCase) >= 0)
-						{
-                            baseEvent.Invoke();
-						}
-					}
-					engine.SetRunningGroupsActive(false);
-				}
-			}
+                }
+            }
+            if (oldState == EngineIgnitionState.HIGH_TEMP && _engineState == EngineIgnitionState.IGNITED)
+            {
+                _engineState = EngineIgnitionState.IGNITED;
+                return true;
+            }
+            return true; 
         }
 
-
-        private bool CheckExternalIgnitor()
-        //private bool CheckExternalIgnitor(ModuleExternalIgnitor externalIgnitor)
+        private void IgnitionResult(bool isExternal, bool isIgnited)
 	    {
-	        bool inRange = false;
-            for (int i = 0; i < ModuleExternalIgnitor.s_ExternalIgnitors.Count; ++i)
+	        if (_engineState == EngineIgnitionState.NOT_IGNITED && ((IgnitionsRemained == 0 && !isExternal) || !isIgnited))
+	        {
+	            if (_engine.EngineIgnited)
+	            {
+                    if (IgnitionsRemained == 0)
+                        ScreenMessages.PostScreenMessage("NO AVAILABLE IGNITIONS", 3f, ScreenMessageStyle.UPPER_CENTER);
+                    _engine.BurstFlameoutGroups();
+	                _engine.SetRunningGroupsActive(false);
+	                foreach (BaseEvent baseEvent in _engine.Events)
+	                {
+	                    if (baseEvent.name.IndexOf("shutdown", StringComparison.CurrentCultureIgnoreCase) >= 0)
+	                    {
+	                        baseEvent.Invoke();
+	                    }
+	                }
+	                _engine.SetRunningGroupsActive(false);
+	            }
+	        }
+	    }
+
+	    private bool CheckExternalIgnitor()
+	    {
+	        InRange = false;
+            for (int i = 0; i < ModuleExternalIgnitor.ExternalIgnitors.Count; ++i)
             {
-                ModuleExternalIgnitor itor = ModuleExternalIgnitor.s_ExternalIgnitors[i];
+                ModuleExternalIgnitor itor = ModuleExternalIgnitor.ExternalIgnitors[i];
                 if (itor.vessel == null || itor.vessel.transform == null || itor.part == null || itor.part.transform == null)
                 {
-                    ModuleExternalIgnitor.s_ExternalIgnitors.RemoveAt(i);
+                    ModuleExternalIgnitor.ExternalIgnitors.RemoveAt(i);
                     --i;
                 }
             }
-            foreach (ModuleExternalIgnitor extIgnitor in ModuleExternalIgnitor.s_ExternalIgnitors)
-	        {
-	            if (extIgnitor.vessel == null || extIgnitor.vessel.transform == null || extIgnitor.part == null ||
-	                extIgnitor.part.transform == null)
-	                ModuleExternalIgnitor.s_ExternalIgnitors.Remove(extIgnitor);
-	            inRange = (extIgnitor.vessel.transform.TransformPoint(extIgnitor.part.orgPos) -
-	             engine.vessel.transform.TransformPoint(engine.part.orgPos)).magnitude < extIgnitor.igniteRange;
-	        }
-            if (inRange) 
+            foreach (ModuleExternalIgnitor extIgnitor in ModuleExternalIgnitor.ExternalIgnitors)
             {
-                return true;
+                if (extIgnitor.vessel == null || extIgnitor.vessel.transform == null || extIgnitor.part == null ||
+	                extIgnitor.part.transform == null)
+	                ModuleExternalIgnitor.ExternalIgnitors.Remove(extIgnitor);
+                Vector3 range = new Vector3();
+                if (extIgnitor.vessel != null && extIgnitor.part != null && extIgnitor.vessel.transform != null)
+                    range = extIgnitor.vessel.transform.TransformPoint(extIgnitor.part.orgPos) -
+                             _engine.vessel.transform.TransformPoint(_engine.part.orgPos);
+                    InRange = range.magnitude < extIgnitor.IgniteRange;
             }
-                return false;
+	        if (InRange) return true;
+	        return false;
         }
-
-	    private void CheckUllageSimulation()
-	    {
-	        if (useUllageSimulation == true)
-	        {
-	            if (vessel.geeForce_immediate >= 0.01)
-	            {
-	                ullageState = "Stable";
-	                fuelFlowStability = 1.0f;
-	            }
-	            else
-	            {
-	                ullageState = "UnStable (Chance " + chanceWhenUnstable + ")";
-	                fuelFlowStability = chanceWhenUnstable;
-	            }
-	        }
-	        else
-	        {
-	            ullageState = "Very Stable";
-	            fuelFlowStability = 1.0f;
-	        }
-	    }
 
 	    [KSPEvent(name = "ReloadIgnitor", guiName = "Reload Ignitor", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
 		public void ReloadIgnitor()
 	    {
-            if (ignitionsAvailable == -1 || ignitionsRemained == ignitionsAvailable) return;
+            if (IgnitionsAvailable == -1 || IgnitionsRemained == IgnitionsAvailable) return;
+            var eva = FlightGlobals.ActiveVessel;
+            var evaKerbalExp = eva.GetVesselCrew().First().experienceTrait.Title;
+	        double engineIgnitorsAmountEva = 0;
+            double engineIgnitorsMaxAmountEva = 0;
+            int engineIgnitorsId = PartResourceLibrary.Instance.GetDefinition("EngineIgnitors").id;
+            eva.rootPart.GetConnectedResourceTotals(engineIgnitorsId, out engineIgnitorsAmountEva, out engineIgnitorsMaxAmountEva);
 
-            var EVA = FlightGlobals.ActiveVessel;
-		    var EVAkerbalEXP = EVA.GetVesselCrew().First().experienceTrait.Title;
-            int EngineIgnitorsId = PartResourceLibrary.Instance.GetDefinition("EngineIgnitors").id;
-            EVA.rootPart.GetConnectedResourceTotals(EngineIgnitorsId, out EngineIgnitorsAmountEVA, out EngineIgnitorsMaxAmountEVA);
-
-            if (EVAkerbalEXP.Equals("Engineer"))
-	        {
-	            if (ignitionsRemained < ignitionsAvailable && EngineIgnitorsAmountEVA > 0)
-	            {
-                    EVA.rootPart.RequestResource("EngineIgnitors", 1);
-                    ignitionsRemained++;
+            if (evaKerbalExp.Equals("Engineer"))
+            {
+                if (IgnitionsRemained < IgnitionsAvailable && engineIgnitorsAmountEva > 0)
+                {
+                    eva.rootPart.RequestResource("EngineIgnitors", 1);
+                    IgnitionsRemained++;
                 }
                 else
                     ScreenMessages.PostScreenMessage("Nothing to load", 4.0f, ScreenMessageStyle.UPPER_CENTER);
             }
-	        else
+            else
                 ScreenMessages.PostScreenMessage("Requires engineer power.", 4.0f, ScreenMessageStyle.UPPER_CENTER);
-		}
+        }
 
         [KSPEvent(name = "ReloadHypergolicFluid", guiName = "Reload Hypergolic Fluid", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void ReloadHypergolicFluid()
         {
-            if (HypergolicFluidAmount == HypergolicFluidMaxAmount) return;
+            int hypergolicFluidId = PartResourceLibrary.Instance.GetDefinition("HypergolicFluid").id;
+            part.GetConnectedResourceTotals(hypergolicFluidId, out _hypergolicFluidAmount, out _hypergolicFluidMaxAmount);
 
-            var EVA = FlightGlobals.ActiveVessel;
-            var EVAkerbalEXP = EVA.GetVesselCrew().First().experienceTrait.Title;
-            int HypergolicFluidId = PartResourceLibrary.Instance.GetDefinition("HypergolicFluid").id;
-            EVA.rootPart.GetConnectedResourceTotals(HypergolicFluidId, out HypergolicFluidAmountEVA, out HypergolicFluidMaxAmountEVA);
+            if (_hypergolicFluidAmount == _hypergolicFluidMaxAmount) return;
 
-            if (EVAkerbalEXP.Equals("Engineer"))
+            double hypergolicFluidAmountEva = 0;
+            double hypergolicFluidMaxAmountEva = 0;
+            var eva = FlightGlobals.ActiveVessel;
+            var evaKerbalExp = eva.GetVesselCrew().First().experienceTrait.Title;
+            eva.rootPart.GetConnectedResourceTotals(hypergolicFluidId, out hypergolicFluidAmountEva, out hypergolicFluidMaxAmountEva);
+
+            if (evaKerbalExp.Equals("Engineer"))
             {
-                if (HypergolicFluidAmount < HypergolicFluidMaxAmount && HypergolicFluidAmountEVA > 0)
+                if (_hypergolicFluidAmount < _hypergolicFluidMaxAmount && hypergolicFluidAmountEva > 0)
                 {
-                    EVA.rootPart.RequestResource("HypergolicFluid", 1);
+                    eva.rootPart.RequestResource("HypergolicFluid", 1);
                     part.RequestResource("HypergolicFluid", -1);
                 }
                 else
@@ -505,7 +424,7 @@ namespace EngineIgnitor
 
         public override void OnSave(ConfigNode node)
 		{
-			foreach (IgnitorResource ignitorResource in ignitorResources)
+			foreach (IgnitorResource ignitorResource in IgnitorResources)
 			{
 				ignitorResource.Save(node.AddNode("IGNITOR_RESOURCE"));
 			}
@@ -515,8 +434,8 @@ namespace EngineIgnitor
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
-			ignitorResourcesStr = new List<string>();
-			ignitorResources = new List<IgnitorResource>();
+			IgnitorResourcesStr = new List<string>();
+			IgnitorResources = new List<IgnitorResource>();
 
 			foreach (ConfigNode subNode in node.GetNodes("IGNITOR_RESOURCE"))
 			{
@@ -526,9 +445,9 @@ namespace EngineIgnitor
 				}
 				IgnitorResource newIgnitorResource = new IgnitorResource();
 				newIgnitorResource.Load(subNode);
-				ignitorResources.Add(newIgnitorResource);
-				ignitorResourcesStr.Add(newIgnitorResource.ToString());
+				IgnitorResources.Add(newIgnitorResource);
+				IgnitorResourcesStr.Add(newIgnitorResource.ToString());
 			}
         }
-	}
+    }
 }

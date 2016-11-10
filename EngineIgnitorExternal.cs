@@ -1,69 +1,90 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace EngineIgnitor
 {
 	public class ModuleExternalIgnitor : PartModule
 	{
-		public static List<ModuleExternalIgnitor> s_ExternalIgnitors = new List<ModuleExternalIgnitor>();
+		public static List<ModuleExternalIgnitor> ExternalIgnitors = new List<ModuleExternalIgnitor>();
 
 		[KSPField(isPersistant = false)]
-		public int ignitionsAvailable = -1;
+		public int IgnitionsAvailable = -1;
 
 		[KSPField(isPersistant = true)]
-		public int ignitionsRemained = -1;
+		public int IgnitionsRemained = -1;
 
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Ignitions")]
-		private string ignitionsAvailableString = "Infinite";
-
-		[KSPField(isPersistant = false)]
-		public string ignitorType = "universal";
+		[KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Ignitions")]
+		private string _ignitionsAvailableString = "Infinite";
 
 		[KSPField(isPersistant = false)]
-		public float igniteRange = 1.5f;
+		public string IgnitorType = "universal";
 
-        private StartState m_startState = StartState.None;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Engines in range:")]
+        private string _enginesInRange = "NO";
 
-		public override void OnStart(StartState state)
-		{
-			m_startState = state;
+        [KSPField(isPersistant = false)]
+		public float IgniteRange = 1f;
 
-			if (state != StartState.None && state != StartState.Editor)
+        private StartState _startState = StartState.None;
+        private float _distanceToEngine;
+
+        public override void OnStart(StartState state)
+        {
+            _startState = state;
+            if (state != StartState.None && state != StartState.Editor)
 			{
-				if(s_ExternalIgnitors.Contains(this) == false)
-					s_ExternalIgnitors.Add(this);
+				if(ExternalIgnitors.Contains(this) == false)
+					ExternalIgnitors.Add(this);
 			}
-			
-			if (state == StartState.Editor)
-			{
-				ignitionsRemained = ignitionsAvailable;
-			}
-		}
+        }
 
-		public override void OnUpdate()
-		{
-			if (m_startState != StartState.None && m_startState != StartState.Editor)
-			{
-				if (ignitionsRemained != -1)
-					ignitionsAvailableString = ignitorType + " - " + ignitionsRemained.ToString() + "/" + ignitionsAvailable.ToString();
+        private void Update()
+        {
+            if (HighLogic.LoadedSceneIsEditor && EditorLogic.fetch.ship != null)
+            {
+                foreach (var p in EditorLogic.fetch.ship.parts)
+                {
+                    if (p.FindModuleImplementing<ModuleEngineIgnitor>() == true)
+                    {
+                        _distanceToEngine = Vector3.Distance(part.transform.position, p.transform.position);
+                    }
+                }
+                if (_distanceToEngine <= IgniteRange && EditorLogic.fetch.ship != null) _enginesInRange = "YES";
+                else _enginesInRange = "NO";
+            }
+            else
+            {
+                foreach (var p in vessel.parts)
+                {
+                    if (p.FindModuleImplementing<ModuleEngineIgnitor>() == true)
+                    {
+                        _distanceToEngine = Vector3.Distance(part.transform.position, p.transform.position);
+                    }
+                }
+                if (_distanceToEngine <= IgniteRange && vessel != null) _enginesInRange = "YES";
+                else _enginesInRange = "NO";
+            }
+
+            if (_startState != StartState.None && _startState != StartState.Editor)
+            {
+                if (IgnitionsRemained != -1)
+					_ignitionsAvailableString = IgnitorType + " - " + IgnitionsRemained + "/" + IgnitionsAvailable;
 				else
-					ignitionsAvailableString = ignitorType + " - " + "Infinite";
+					_ignitionsAvailableString = IgnitorType + " - " + "Infinite";
 
-				if (this.vessel == null)
+				if (vessel == null)
 				{
-					s_ExternalIgnitors.Remove(this);
+					ExternalIgnitors.Remove(this);
 				}
 			}
 		}
 
 		public override string GetInfo()
 		{
-			if (ignitionsAvailable != -1)
-				return "Can ignite for " + ignitionsAvailable.ToString() + " time(s).\n" + "Ignitor type: " + ignitorType + "\n";
+			if (IgnitionsAvailable != -1)
+				return "Can ignite for " + IgnitionsAvailable + " time(s).\n" + "Ignitor type: " + IgnitorType + "\n";
 			else
-				return "Can ignite for infinite times.\n" + "Ignitor type: " + ignitorType + "\n";
+				return "Can ignite for infinite times.\n" + "Ignitor type: " + IgnitorType + "\n";
 		}
 	}
 }

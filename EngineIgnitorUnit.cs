@@ -1,47 +1,50 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using KSP.IO;
+using KSP.UI;
 using UniLinq;
+using UnityEngine;
 
 namespace EngineIgnitor
 {
 	public class EngineIgnitorToolbox : PartModule
 	{
-        private StartState m_startState = StartState.None;
+        private StartState _startState = StartState.None;
 
-        private double EngineIgnitorsAmount;
-        private double EngineIgnitorsMaxAmount;
-        private double EngineIgnitorsAmountEVA;
-        private double EngineIgnitorsMaxAmountEVA;
+        private double _engineIgnitorsAmount;
+        private double _engineIgnitorsMaxAmount;
+        private double _engineIgnitorsAmountEva;
+        private double _engineIgnitorsMaxAmountEva;
         private readonly int _engineIgnitorsId = PartResourceLibrary.Instance.GetDefinition("EngineIgnitors").id;
 
         public override void OnStart(StartState state)
 	    {
-	        m_startState = state;
+	        _startState = state;
 	    }
 
 	    public override void OnUpdate()
 	    {
-            if (m_startState == StartState.None || m_startState == StartState.Editor) return;
+            if (_startState == StartState.None || _startState == StartState.Editor) return;
 
-            part.GetConnectedResourceTotals(_engineIgnitorsId, out EngineIgnitorsAmount, out EngineIgnitorsMaxAmount);
+            part.GetConnectedResourceTotals(_engineIgnitorsId, out _engineIgnitorsAmount, out _engineIgnitorsMaxAmount);
 
 	        if (FlightGlobals.ActiveVessel != null)
 	        {
                 Events["TakeIgnitor"].guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
-                Events["TakeIgnitor"].guiName = "Take Ignitor [" + EngineIgnitorsAmount + "/" + EngineIgnitorsMaxAmount + "]";
+                Events["TakeIgnitor"].guiName = "Take Ignitor [" + _engineIgnitorsAmount + "/" + _engineIgnitorsMaxAmount + "]";
             }
 	    }
 
         [KSPEvent(name = "TakeIgnitor", guiName = "Take Ignitor", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void TakeIgnitor()
         {
-            var EVA = FlightGlobals.ActiveVessel;
-            var EVAkerbalEXP = EVA.GetVesselCrew().First().experienceTrait.Title;
-            EVA.rootPart.GetConnectedResourceTotals(_engineIgnitorsId, out EngineIgnitorsAmountEVA, out EngineIgnitorsMaxAmountEVA);
-            if (EVAkerbalEXP.Equals("Engineer"))
+            var eva = FlightGlobals.ActiveVessel;
+            var evaKerbalExp = eva.GetVesselCrew().First().experienceTrait.Title;
+            eva.rootPart.GetConnectedResourceTotals(_engineIgnitorsId, out _engineIgnitorsAmountEva, out _engineIgnitorsMaxAmountEva);
+            if (evaKerbalExp.Equals("Engineer"))
             {
-                if (EngineIgnitorsAmount > 0 && EngineIgnitorsAmountEVA < EngineIgnitorsMaxAmountEVA)
+                if (_engineIgnitorsAmount > 0 && _engineIgnitorsAmountEva < _engineIgnitorsMaxAmountEva)
                 {
-                    EVA.rootPart.RequestResource("EngineIgnitors", -1);
+                    eva.rootPart.RequestResource("EngineIgnitors", -1);
                     part.RequestResource("EngineIgnitors", 1);
                 }
                 else
@@ -54,43 +57,43 @@ namespace EngineIgnitor
 
     public class EngineIgnitorHypergolicFluid : PartModule
     {
-        private StartState m_startState = StartState.None;
+        private StartState _startState = StartState.None;
 
-        private double HypergolicFluidAmount;
-        private double HypergolicFluidMaxAmount;
-        private double HypergolicFluidAmountEVA;
-        private double HypergolicFluidMaxAmountEVA;
+        private double _hypergolicFluidAmount;
+        private double _hypergolicFluidMaxAmount;
+        private double _hypergolicFluidAmountEva;
+        private double _hypergolicFluidMaxAmountEva;
         private readonly int _engineIgnitorsId = PartResourceLibrary.Instance.GetDefinition("HypergolicFluid").id;
 
         public override void OnStart(StartState state)
         {
-            m_startState = state;
+            _startState = state;
         }
 
         public override void OnUpdate()
         {
-            if (m_startState == StartState.None || m_startState == StartState.Editor) return;
+            if (_startState == StartState.None || _startState == StartState.Editor) return;
 
-            part.GetConnectedResourceTotals(_engineIgnitorsId, out HypergolicFluidAmount, out HypergolicFluidMaxAmount);
+            part.GetConnectedResourceTotals(_engineIgnitorsId, out _hypergolicFluidAmount, out _hypergolicFluidMaxAmount);
 
             if (FlightGlobals.ActiveVessel != null)
             {
                 Events["TakeHypergolicFluid"].guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
-                Events["TakeHypergolicFluid"].guiName = "Take Hypergolic Fluid [" + HypergolicFluidAmount + "/" + HypergolicFluidMaxAmount + "]";
+                Events["TakeHypergolicFluid"].guiName = "Take Hypergolic Fluid [" + _hypergolicFluidAmount + "/" + _hypergolicFluidMaxAmount + "]";
             }
         }
 
         [KSPEvent(name = "TakeHypergolicFluid", guiName = "Take Hypergolic Fluid", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void TakeIgnitor()
         {
-            var EVA = FlightGlobals.ActiveVessel;
-            var EVAkerbalEXP = EVA.GetVesselCrew().First().experienceTrait.Title;
-            EVA.rootPart.GetConnectedResourceTotals(_engineIgnitorsId, out HypergolicFluidAmountEVA, out HypergolicFluidMaxAmountEVA);
-            if (EVAkerbalEXP.Equals("Engineer"))
+            var eva = FlightGlobals.ActiveVessel;
+            var evaKerbalExp = eva.GetVesselCrew().First().experienceTrait.Title;
+            eva.rootPart.GetConnectedResourceTotals(_engineIgnitorsId, out _hypergolicFluidAmountEva, out _hypergolicFluidMaxAmountEva);
+            if (evaKerbalExp.Equals("Engineer"))
             {
-                if (HypergolicFluidAmount > 0 && HypergolicFluidAmountEVA < HypergolicFluidMaxAmountEVA)
+                if (_hypergolicFluidAmount > 0 && _hypergolicFluidAmountEva < _hypergolicFluidMaxAmountEva)
                 {
-                    EVA.rootPart.RequestResource("HypergolicFluid", -1);
+                    eva.rootPart.RequestResource("HypergolicFluid", -1);
                     part.RequestResource("HypergolicFluid", 1);
                 }
                 else
@@ -98,6 +101,89 @@ namespace EngineIgnitor
             }
             else
                 ScreenMessages.PostScreenMessage("Requires engineer power.", 4.0f, ScreenMessageStyle.UPPER_CENTER);
+        }
+    }
+
+    public class EngineIgnitorEVA : PartModule
+    {
+        private KerbalInfo _info = new KerbalInfo();
+        private ProtoCrewMember _kerbal;
+
+        public override void OnStart(StartState state)
+        {
+            _kerbal = vessel.GetVesselCrew().First();
+            var evaKerbalExp = _kerbal.experienceTrait.Title;
+            var evaKerbalMale = _kerbal.gender == ProtoCrewMember.Gender.Male;
+
+            if (!evaKerbalExp.Equals("Engineer") || !evaKerbalMale)
+            {
+                part.RemoveResource("EngineIgnitors");
+            }
+            else
+            {
+                if (File.Exists<EngineIgnitorEVA>(_kerbal.name + ".sav"))
+                {
+                    using (var file = File.Open<EngineIgnitorEVA>(_kerbal.name + ".sav", FileMode.Open))
+                    {
+                        var buffer = new byte[file.Length];
+
+                        file.Read(buffer, 0, buffer.Length);
+
+                        var result = IOUtils.DeserializeFromBinary(buffer) as KerbalInfo;
+
+                        if (result != null)
+                        {
+                            _info = result;
+                            var currentTime = Planetarium.GetUniversalTime().GetHashCode();
+                            var currentVessel = FlightGlobals.ActiveVessel.id.GetHashCode();
+
+                            if (currentTime > _info.Time && currentVessel == _info.VesselId)
+                            {
+                                int resourceId = PartResourceLibrary.Instance.GetDefinition("EngineIgnitors").id;
+                                part.RequestResource(resourceId, -_info.FoundIgnitors);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void OnDestroy()
+        {
+            double resourceAmount = 0f;
+            double resourceMaxAmount = 0f;
+            int resourceId = PartResourceLibrary.Instance.GetDefinition("EngineIgnitors").id;
+            if (part != null) part.GetConnectedResourceTotals(resourceId, out resourceAmount, out resourceMaxAmount);
+
+            if (File.Exists<EngineIgnitorEVA>(_kerbal.name + ".sav"))
+            {
+                File.Delete<EngineIgnitorEVA>(_kerbal.name + ".sav");
+            }
+            if (resourceAmount > 0)
+            {
+                using (var file = File.Create<EngineIgnitorEVA>(_kerbal.name + ".sav"))
+                {
+                    var aaa1 = vessel;
+                    var aaa2 = vessel.id;
+                    var aaa3 = vessel.name;
+
+                    var bbb1 = FlightGlobals.ActiveVessel;
+                    var bbb2 = FlightGlobals.ActiveVessel.id.GetHashCode();
+                    var bbb3 = FlightGlobals.ActiveVessel.name;
+
+                    var info = new KerbalInfo
+                    {
+                        VesselId = FlightGlobals.ActiveVessel.id.GetHashCode(),
+                        KerbalName = _kerbal.name,
+                        Time = Planetarium.GetUniversalTime().GetHashCode(),
+                        FoundIgnitors = resourceAmount
+                    };
+
+                    var result = IOUtils.SerializeToBinary(info);
+
+                    file.Write(result, 0, result.Length);
+                }
+            }
         }
     }
 }
