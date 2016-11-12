@@ -20,6 +20,7 @@ namespace EngineIgnitor
 
         private void OnRecovery(Vessel data)
         {
+            //asdf
             foreach (var kerbal in data.GetVesselCrew())
             {
                 if (File.Exists<EngineIgnitorEVA>(kerbal.name + ".sav"))
