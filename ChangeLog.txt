@@ -1,0 +1,4 @@
+1.3.0.1
+	Fixed Ignitor update in the PAW when in flight
+	Changed the dash to a colon between the ignitor type and the count remaining
+	Reorganized directories, removed unnecessary OLDD directory
