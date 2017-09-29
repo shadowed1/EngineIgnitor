@@ -15,6 +15,9 @@ rem Copy files to GameData locations
 
 
 copy /Y "%1%2" "GameData\%GAMEDIR%\Plugins"
+xcopy /e /y MM_Configs GameData\%GAMEDIR%\MM_Configs
+xcopy /e /y Resources GameData\%GAMEDIR%\Resources
+
 copy /Y %GAMEDIR%.version GameData\%GAMEDIR%
 copy /Y ..\MiniAVC.dll GameData\%GAMEDIR%
 

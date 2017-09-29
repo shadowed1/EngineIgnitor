@@ -30,9 +30,6 @@ namespace EngineIgnitor
 	    public bool InRange;
 	    public bool IsExternal;
 
-        private double _hypergolicFluidAmount = 0;
-        private double _hypergolicFluidMaxAmount = 0;
-
         [KSPField(isPersistant = false)]
         public int IgnitionsAvailable = -1; //-1: Infinite. 0: Unavailable. 1~...: As is.
 
@@ -80,6 +77,7 @@ namespace EngineIgnitor
 		public List<string> IgnitorResourcesStr;
 		public List<IgnitorResource> IgnitorResources;
 
+
         public override void OnStart(StartState state)
         {
             _startState = state;
@@ -101,6 +99,7 @@ namespace EngineIgnitor
              
             IgnitorResources.Clear();
             foreach (string str in IgnitorResourcesStr) IgnitorResources.Add(IgnitorResource.FromString(str));
+
         }
 
 		public override void OnAwake()
@@ -184,18 +183,24 @@ namespace EngineIgnitor
                     IgnitionsAvailableString = IgnitorType + " : [ " + IgnitionsRemained + "/" + IgnitionsAvailable + " ]";
             }
 
+
             if (part != null)
 				AutoIgnitionState = part.temperature.ToString("F1") + "/" + AutoIgnitionTemperature.ToString("F1");
 			else
 				AutoIgnitionState = "?/" + AutoIgnitionTemperature.ToString("F1");
 
-		    var totalRes = new List<OnboardIgnitorResource>();
+
+
+            var totalRes = new List<OnboardIgnitorResource>();
 		    for (int i = 0; i < IgnitorResources.Count; i++)
 		    {
-		        double resourceAmount = 0f;
+
+                double resourceAmount = 0f;
                 double resourceMaxAmount = 0f;
                 int resourceId = PartResourceLibrary.Instance.GetDefinition(IgnitorResources[i].Name).id;
-		        if (part != null) part.GetConnectedResourceTotals(resourceId, out resourceAmount, out resourceMaxAmount);
+                
+
+                if (part != null) part.GetConnectedResourceTotals(resourceId, out resourceAmount, out resourceMaxAmount);
 		        var foundResource = new OnboardIgnitorResource
 		        {
 		            Id = resourceId,
@@ -207,15 +212,11 @@ namespace EngineIgnitor
 		        totalRes.Add(foundResource);
             }
 
-            int hypergolicFluidId = PartResourceLibrary.Instance.GetDefinition("HypergolicFluid").id;
-		    if (part != null)
-		        part.GetConnectedResourceTotals(hypergolicFluidId, out _hypergolicFluidAmount, out _hypergolicFluidMaxAmount);
-		    if (FlightGlobals.ActiveVessel != null)
+
+            if (FlightGlobals.ActiveVessel != null)
             {
                 Events["ReloadIgnitor"].guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
                 Events["ReloadIgnitor"].guiName = "Reload Ignitor (" + IgnitionsAvailableString + ")";
-                Events["ReloadHypergolicFluid"].guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
-                Events["ReloadHypergolicFluid"].guiName = "Reload Hypergolic Fluid (" + _hypergolicFluidAmount + "/" + _hypergolicFluidMaxAmount + ")";
             }
 
             var oldState = _engineState;
@@ -245,6 +246,8 @@ namespace EngineIgnitor
                     //When changing from not-ignited to ignited, we must ensure that the throttle is non-zero or locked (SRBs)
                     if (vessel.ctrlState.mainThrottle > 0.0f || _engine.throttleLocked)
                         _engineState = EngineIgnitionState.IGNITED;
+                    else
+                        _engineState = EngineIgnitionState.NOT_IGNITED;
                 }
             }
         }
@@ -253,6 +256,7 @@ namespace EngineIgnitor
         {
             if (UseUllageSimulation)
             {
+                Log.Info("vessel.geeForce_immediate: " + vessel.geeForce_immediate+ ", vessel.geeForce: " + vessel.geeForce);
                 if (vessel.geeForce_immediate >= 0.01 || vessel.Landed)
                 {
                     UllageState = "Stable";
@@ -261,7 +265,7 @@ namespace EngineIgnitor
                 }
                 else
                 {
-                    UllageState = "UnStable (Chance: " + (100 *(1-ChanceWhenUnstable)) + "%)";
+                    UllageState = "UnStable (Success Chance: " + (100 *ChanceWhenUnstable) + "%)";
                     _fuelFlowStability = ChanceWhenUnstable;
                     return;
                 }
@@ -316,9 +320,10 @@ namespace EngineIgnitor
                     var chance = UnityEngine.Random.Range(0.0f, 1.0f);
                     var attempt = chance <= minPotential;
                     Debug.Log("EngineIgnitor: minPotential: " + minPotential.ToString() + ", chance: " + chance.ToString());
+                    ScreenMessages.PostScreenMessage("Chance of ignition success: " + minPotential + ", Random: " + chance.ToString(), 5, ScreenMessageStyle.UPPER_CENTER);
                     if (!attempt)
                     {
-                        ScreenMessages.PostScreenMessage("FAILED BECAUSE OF FUEL FLOW UNSTABILITY", 3f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage("Ignition failed due to fuel flow instability", 3f, ScreenMessageStyle.UPPER_CENTER);
                         _engineState = EngineIgnitionState.NOT_IGNITED;
                         return false;
                     }
@@ -398,34 +403,6 @@ namespace EngineIgnitor
                 {
                     eva.rootPart.RequestResource("EngineIgnitors", 1);
                     IgnitionsRemained++;
-                }
-                else
-                    ScreenMessages.PostScreenMessage("Nothing to load", 4.0f, ScreenMessageStyle.UPPER_CENTER);
-            }
-            else
-                ScreenMessages.PostScreenMessage("Requires engineer power.", 4.0f, ScreenMessageStyle.UPPER_CENTER);
-        }
-
-        [KSPEvent(name = "ReloadHypergolicFluid", guiName = "Reload Hypergolic Fluid", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
-        public void ReloadHypergolicFluid()
-        {
-            int hypergolicFluidId = PartResourceLibrary.Instance.GetDefinition("HypergolicFluid").id;
-            part.GetConnectedResourceTotals(hypergolicFluidId, out _hypergolicFluidAmount, out _hypergolicFluidMaxAmount);
-
-            if (_hypergolicFluidAmount == _hypergolicFluidMaxAmount) return;
-
-            double hypergolicFluidAmountEva = 0;
-            double hypergolicFluidMaxAmountEva = 0;
-            var eva = FlightGlobals.ActiveVessel;
-            var evaKerbalExp = eva.GetVesselCrew().First().experienceTrait.Title;
-            eva.rootPart.GetConnectedResourceTotals(hypergolicFluidId, out hypergolicFluidAmountEva, out hypergolicFluidMaxAmountEva);
-
-            if (evaKerbalExp.Equals("Engineer"))
-            {
-                if (_hypergolicFluidAmount < _hypergolicFluidMaxAmount && hypergolicFluidAmountEva > 0)
-                {
-                    eva.rootPart.RequestResource("HypergolicFluid", 1);
-                    part.RequestResource("HypergolicFluid", -1);
                 }
                 else
                     ScreenMessages.PostScreenMessage("Nothing to load", 4.0f, ScreenMessageStyle.UPPER_CENTER);

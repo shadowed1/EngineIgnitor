@@ -1,6 +1,3 @@
-D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\MM_Configs\MM_EngineIgnitorStock.cfg
-D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\MM_Configs\MM_EngineIgnitor.cfg
-D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\Resources\Ignitors.cfg
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\EngineIgnitor.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\EngineIgnitor.pdb
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\Assembly-CSharp-firstpass.dll

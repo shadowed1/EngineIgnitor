@@ -55,54 +55,6 @@ namespace EngineIgnitor
         }
     }
 
-    public class EngineIgnitorHypergolicFluid : PartModule
-    {
-        private StartState _startState = StartState.None;
-
-        private double _hypergolicFluidAmount;
-        private double _hypergolicFluidMaxAmount;
-        private double _hypergolicFluidAmountEva;
-        private double _hypergolicFluidMaxAmountEva;
-        private readonly int _engineIgnitorsId = PartResourceLibrary.Instance.GetDefinition("HypergolicFluid").id;
-
-        public override void OnStart(StartState state)
-        {
-            _startState = state;
-        }
-
-        public override void OnUpdate()
-        {
-            if (_startState == StartState.None || _startState == StartState.Editor) return;
-
-            part.GetConnectedResourceTotals(_engineIgnitorsId, out _hypergolicFluidAmount, out _hypergolicFluidMaxAmount);
-
-            if (FlightGlobals.ActiveVessel != null)
-            {
-                Events["TakeHypergolicFluid"].guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
-                Events["TakeHypergolicFluid"].guiName = "Take Hypergolic Fluid [" + _hypergolicFluidAmount + "/" + _hypergolicFluidMaxAmount + "]";
-            }
-        }
-
-        [KSPEvent(name = "TakeHypergolicFluid", guiName = "Take Hypergolic Fluid", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
-        public void TakeIgnitor()
-        {
-            var eva = FlightGlobals.ActiveVessel;
-            var evaKerbalExp = eva.GetVesselCrew().First().experienceTrait.Title;
-            eva.rootPart.GetConnectedResourceTotals(_engineIgnitorsId, out _hypergolicFluidAmountEva, out _hypergolicFluidMaxAmountEva);
-            if (evaKerbalExp.Equals("Engineer"))
-            {
-                if (_hypergolicFluidAmount > 0 && _hypergolicFluidAmountEva < _hypergolicFluidMaxAmountEva)
-                {
-                    eva.rootPart.RequestResource("HypergolicFluid", -1);
-                    part.RequestResource("HypergolicFluid", 1);
-                }
-                else
-                    ScreenMessages.PostScreenMessage("Can not take more...", 4.0f, ScreenMessageStyle.UPPER_CENTER);
-            }
-            else
-                ScreenMessages.PostScreenMessage("Requires engineer power.", 4.0f, ScreenMessageStyle.UPPER_CENTER);
-        }
-    }
 
     public class EngineIgnitorEVA : PartModule
     {

@@ -44,9 +44,6 @@ D:\Users\jbb\github\EngineIgnitor\obj\Debug\EngineIgnitor.csproj.CoreCompileInpu
 D:\Users\jbb\github\EngineIgnitor\bin\Debug\Assembly-UnityScript-firstpass.dll
 D:\Users\jbb\github\EngineIgnitor\bin\Debug\Boo.Lang.dll
 D:\Users\jbb\github\EngineIgnitor\bin\Debug\UnityScript.Lang.dll
-D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\MM_Configs\MM_EngineIgnitorStock.cfg
-D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\MM_Configs\MM_EngineIgnitor.cfg
-D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\Resources\Ignitors.cfg
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\Assembly-CSharp-firstpass.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\Assembly-CSharp.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\Assembly-UnityScript-firstpass.dll
@@ -67,3 +64,4 @@ D:\Users\jbb\github\EngineIgnitor\Source\obj\Debug\EngineIgnitor.dll
 D:\Users\jbb\github\EngineIgnitor\Source\obj\Debug\EngineIgnitor.pdb
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\EngineIgnitor.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\EngineIgnitor.pdb
+D:\Users\jbb\github\EngineIgnitor\Source\obj\Debug\EngineIgnitor.csprojResolveAssemblyReference.cache
