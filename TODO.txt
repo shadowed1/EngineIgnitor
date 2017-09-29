@@ -1,0 +1,9 @@
+TODO List
+
+1.  Add settings page
+		Active in game
+		Configurable chance of success when weightless
+
+2	Check engine orientation related to current accel to determine G force on engine
+
+

@@ -16,19 +16,19 @@ namespace EngineIgnitor
     }
 
     public class ModuleEngineIgnitor : PartModule
-	{
+    {
         private bool _isEngineMouseOver;
 
         public enum EngineIgnitionState
-		{
-			INVALID = -1,
-			NOT_IGNITED = 0,
-			HIGH_TEMP = 1,
-			IGNITED = 2,
-		}
+        {
+            INVALID = -1,
+            NOT_IGNITED = 0,
+            HIGH_TEMP = 1,
+            IGNITED = 2,
+        }
 
-	    public bool InRange;
-	    public bool IsExternal;
+        public bool InRange;
+        public bool IsExternal;
 
         [KSPField(isPersistant = false)]
         public int IgnitionsAvailable = -1; //-1: Infinite. 0: Unavailable. 1~...: As is.
@@ -39,10 +39,10 @@ namespace EngineIgnitor
         [KSPField(isPersistant = false, guiActive = true, guiName = "Ignitions")]
         public string IgnitionsAvailableString = "";
 
-		[KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false)]
         public float AutoIgnitionTemperature = 800;
 
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Auto-Ignite")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Auto-Ignite")]
         public string AutoIgnitionState = "?/800";
 
         // In case we have multiple engines...
@@ -52,83 +52,100 @@ namespace EngineIgnitor
         [KSPField(isPersistant = false)]
         public string IgnitorType = "T0";
 
-		[KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false)]
         public bool UseUllageSimulation = true;
 
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Flow")]
-        public string UllageState;
-
-        [KSPField]
-        public float ChanceWhenUnstable = 0.2f;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Flow")]
+        public string UllageState;      
 
         private float _fuelFlowStability;
         private float _oldFuelFlowStability;
 
         // List of all engines. So we can pick the one we are corresponding to.
         private List<EngineWrapper> _engines = new List<EngineWrapper>();
-		private EngineWrapper _engine = null;
+        private EngineWrapper _engine = null;
 
-		// A state for the FSM.
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Engine State")]
-		private EngineIgnitionState _engineState = EngineIgnitionState.INVALID;
+        // A state for the FSM.
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Engine State")]
+        private EngineIgnitionState _engineState = EngineIgnitionState.INVALID;
 
-		private StartState _startState = StartState.None;
+        private StartState _startState = StartState.None;
 
-		public List<string> IgnitorResourcesStr;
-		public List<IgnitorResource> IgnitorResources;
+        public List<string> IgnitorResourcesStr;
+        public List<IgnitorResource> IgnitorResources;
 
 
         public override void OnStart(StartState state)
         {
+           
             _startState = state;
-			_engines.Clear();
-			foreach (PartModule module in part.Modules)
-			{
-				if (module is ModuleEngines)
-				{
-					_engines.Add(new EngineWrapper(module as ModuleEngines));
-				}
-				if (module is ModuleEnginesFX)
-				{
-					_engines.Add(new EngineWrapper(module as ModuleEnginesFX));
-				}
-			}
-			_engine = _engines.Count > EngineIndex ? _engines[EngineIndex] : null;
+            _engines.Clear();
+            foreach (PartModule module in part.Modules)
+            {
+                if (module is ModuleEngines)
+                {
+                    _engines.Add(new EngineWrapper(module as ModuleEngines));
+                }
+                if (module is ModuleEnginesFX)
+                {
+                    _engines.Add(new EngineWrapper(module as ModuleEnginesFX));
+                }
+            }
+            _engine = _engines.Count > EngineIndex ? _engines[EngineIndex] : null;
 
-			if (state == StartState.Editor) IgnitionsRemained = IgnitionsAvailable;
-             
+            if (state == StartState.Editor) IgnitionsRemained = IgnitionsAvailable;
+
             IgnitorResources.Clear();
             foreach (string str in IgnitorResourcesStr) IgnitorResources.Add(IgnitorResource.FromString(str));
 
         }
 
-		public override void OnAwake()
-		{
-			base.OnAwake();
-			if (IgnitorResources == null) IgnitorResources = new List<IgnitorResource>();
-			if (IgnitorResourcesStr == null) IgnitorResourcesStr = new List<string>();
-		}
-
-		public override string GetInfo()
-		{
-			if (IgnitionsAvailable != -1)
-                return "Can ignite for " + IgnitionsAvailable + " time(s).\n" + "Ignitor type: " + IgnitorType + "\n";
-			return "Can ignite for infinite times.\n" + "Ignitor type: " + IgnitorType + "\n";
-		}
-
-		public void OnMouseEnter()
-		{
-			if (HighLogic.LoadedSceneIsEditor) _isEngineMouseOver = true;
-			
-		}
-
-		public void OnMouseExit()
-		{
-			if (HighLogic.LoadedSceneIsEditor) _isEngineMouseOver = false;
-		}
-
-	    void OnGUI()
+        public override void OnAwake()
         {
+            base.OnAwake();
+            if (IgnitorResources == null) IgnitorResources = new List<IgnitorResource>();
+            if (IgnitorResourcesStr == null) IgnitorResourcesStr = new List<string>();
+
+
+            if (part.Modules.Contains("ModuleEngines") | part.Modules.Contains("ModuleEnginesFX")) //is part an engine?
+            {
+                foreach (PartModule pm in part.Modules) //change from part to partmodules
+                {
+                    if (pm.moduleName == "ModuleEngines") //find partmodule engine on th epart
+                    {
+                        em = (ModuleEngines)pm;
+                        break;
+                    }
+                    if (pm.moduleName == "ModuleEnginesFX") //find partmodule engine on th epart
+                    {
+                        emfx = (ModuleEnginesFX)pm;
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        public override string GetInfo()
+        {
+            if (IgnitionsAvailable != -1)
+                return "Can ignite for " + IgnitionsAvailable + " time(s).\n" + "Ignitor type: " + IgnitorType + "\n";
+            return "Can ignite for infinite times.\n" + "Ignitor type: " + IgnitorType + "\n";
+        }
+
+        public void OnMouseEnter()
+        {
+            if (HighLogic.LoadedSceneIsEditor) _isEngineMouseOver = true;
+        }
+
+        public void OnMouseExit()
+        {
+            if (HighLogic.LoadedSceneIsEditor) _isEngineMouseOver = false;
+        }
+
+        void OnGUI()
+        {
+
             if (_isEngineMouseOver == false) return;
 
             string ignitorInfo = "Ignitor: ";
@@ -185,31 +202,31 @@ namespace EngineIgnitor
 
 
             if (part != null)
-				AutoIgnitionState = part.temperature.ToString("F1") + "/" + AutoIgnitionTemperature.ToString("F1");
-			else
-				AutoIgnitionState = "?/" + AutoIgnitionTemperature.ToString("F1");
+                AutoIgnitionState = part.temperature.ToString("F1") + "/" + AutoIgnitionTemperature.ToString("F1");
+            else
+                AutoIgnitionState = "?/" + AutoIgnitionTemperature.ToString("F1");
 
 
 
             var totalRes = new List<OnboardIgnitorResource>();
-		    for (int i = 0; i < IgnitorResources.Count; i++)
-		    {
+            for (int i = 0; i < IgnitorResources.Count; i++)
+            {
 
                 double resourceAmount = 0f;
                 double resourceMaxAmount = 0f;
                 int resourceId = PartResourceLibrary.Instance.GetDefinition(IgnitorResources[i].Name).id;
-                
+
 
                 if (part != null) part.GetConnectedResourceTotals(resourceId, out resourceAmount, out resourceMaxAmount);
-		        var foundResource = new OnboardIgnitorResource
-		        {
-		            Id = resourceId,
+                var foundResource = new OnboardIgnitorResource
+                {
+                    Id = resourceId,
                     Name = IgnitorResources[i].Name,
                     Request = IgnitorResources[i].Amount,
                     Amount = resourceAmount,
-		            MaxAmount = resourceMaxAmount
-		        };
-		        totalRes.Add(foundResource);
+                    MaxAmount = resourceMaxAmount
+                };
+                totalRes.Add(foundResource);
             }
 
 
@@ -252,12 +269,28 @@ namespace EngineIgnitor
             }
         }
 
+        ModuleEngines em;
+        ModuleEnginesFX emfx;
+
         private void CheckUllageState()
         {
             if (UseUllageSimulation)
             {
-                Log.Info("vessel.geeForce_immediate: " + vessel.geeForce_immediate+ ", vessel.geeForce: " + vessel.geeForce);
-                if (vessel.geeForce_immediate >= 0.01 || vessel.Landed)
+                Vector3d x = new Vector3d() ;
+
+                if (em != null)
+                    x = em.thrustTransforms[0].forward;
+                if (emfx != null)
+                    x = emfx.thrustTransforms[0].forward;
+               
+                Vector3d geeForceVector = vessel.obt_velocity - vessel.lastVel - vessel.graviticAcceleration / TimeWarp.fixedDeltaTime;
+                var a = 180 - Vector3.Angle(x, geeForceVector);
+
+                Log.Info("vessel.acceleration_immediate: " + vessel.acceleration_immediate);
+                Log.Info("Angle: " + a);
+                Log.Info("vessel.geeForce_immediate: " + vessel.geeForce_immediate + ", vessel.geeForce: " + vessel.geeForce);
+                Log.Info("Math.Cos(a) * vessel.geeForce_immediate: " + (Math.Cos(a) * vessel.geeForce_immediate).ToString());
+                if (a < 90 && Math.Cos(a) * vessel.geeForce_immediate >= 0.01 || vessel.Landed)
                 {
                     UllageState = "Stable";
                     _fuelFlowStability = 1.0f;
@@ -265,8 +298,10 @@ namespace EngineIgnitor
                 }
                 else
                 {
-                    UllageState = "UnStable (Success Chance: " + (100 *ChanceWhenUnstable) + "%)";
-                    _fuelFlowStability = ChanceWhenUnstable;
+                    Log.Info("Unstable");
+                    _fuelFlowStability = (float)HighLogic.CurrentGame.Parameters.CustomParams<EI>().ChanceWhenUnstable / 100;
+                    UllageState = "UnStable (Success Chance: " + HighLogic.CurrentGame.Parameters.CustomParams<EI>().ChanceWhenUnstable + "%)";
+                    
                     return;
                 }
             }
@@ -334,34 +369,34 @@ namespace EngineIgnitor
                 _engineState = EngineIgnitionState.IGNITED;
                 return true;
             }
-            return true; 
+            return true;
         }
 
         private void IgnitionResult(bool isExternal, bool isIgnited)
-	    {
-	        if (_engineState == EngineIgnitionState.NOT_IGNITED && ((IgnitionsRemained == 0 && !isExternal) || !isIgnited))
-	        {
-	            if (_engine.EngineIgnited)
-	            {
+        {
+            if (_engineState == EngineIgnitionState.NOT_IGNITED && ((IgnitionsRemained == 0 && !isExternal) || !isIgnited))
+            {
+                if (_engine.EngineIgnited)
+                {
                     if (IgnitionsRemained == 0)
                         ScreenMessages.PostScreenMessage("NO AVAILABLE IGNITIONS", 3f, ScreenMessageStyle.UPPER_CENTER);
                     _engine.BurstFlameoutGroups();
-	                _engine.SetRunningGroupsActive(false);
-	                foreach (BaseEvent baseEvent in _engine.Events)
-	                {
-	                    if (baseEvent.name.IndexOf("shutdown", StringComparison.CurrentCultureIgnoreCase) >= 0)
-	                    {
-	                        baseEvent.Invoke();
-	                    }
-	                }
-	                _engine.SetRunningGroupsActive(false);
-	            }
-	        }
-	    }
+                    _engine.SetRunningGroupsActive(false);
+                    foreach (BaseEvent baseEvent in _engine.Events)
+                    {
+                        if (baseEvent.name.IndexOf("shutdown", StringComparison.CurrentCultureIgnoreCase) >= 0)
+                        {
+                            baseEvent.Invoke();
+                        }
+                    }
+                    _engine.SetRunningGroupsActive(false);
+                }
+            }
+        }
 
-	    private bool CheckExternalIgnitor()
-	    {
-	        InRange = false;
+        private bool CheckExternalIgnitor()
+        {
+            InRange = false;
             for (int i = 0; i < ModuleExternalIgnitor.ExternalIgnitors.Count; ++i)
             {
                 ModuleExternalIgnitor itor = ModuleExternalIgnitor.ExternalIgnitors[i];
@@ -374,25 +409,25 @@ namespace EngineIgnitor
             foreach (ModuleExternalIgnitor extIgnitor in ModuleExternalIgnitor.ExternalIgnitors)
             {
                 if (extIgnitor.vessel == null || extIgnitor.vessel.transform == null || extIgnitor.part == null ||
-	                extIgnitor.part.transform == null)
-	                ModuleExternalIgnitor.ExternalIgnitors.Remove(extIgnitor);
+                    extIgnitor.part.transform == null)
+                    ModuleExternalIgnitor.ExternalIgnitors.Remove(extIgnitor);
                 Vector3 range = new Vector3();
                 if (extIgnitor.vessel != null && extIgnitor.part != null && extIgnitor.vessel.transform != null)
                     range = extIgnitor.vessel.transform.TransformPoint(extIgnitor.part.orgPos) -
                              _engine.vessel.transform.TransformPoint(_engine.part.orgPos);
-                    InRange = range.magnitude < extIgnitor.IgniteRange;
+                InRange = range.magnitude < extIgnitor.IgniteRange;
             }
-	        if (InRange) return true;
-	        return false;
+            if (InRange) return true;
+            return false;
         }
 
-	    [KSPEvent(name = "ReloadIgnitor", guiName = "Reload Ignitor", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
-		public void ReloadIgnitor()
-	    {
+        [KSPEvent(name = "ReloadIgnitor", guiName = "Reload Ignitor", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        public void ReloadIgnitor()
+        {
             if (IgnitionsAvailable == -1 || IgnitionsRemained == IgnitionsAvailable) return;
             var eva = FlightGlobals.ActiveVessel;
             var evaKerbalExp = eva.GetVesselCrew().First().experienceTrait.Title;
-	        double engineIgnitorsAmountEva = 0;
+            double engineIgnitorsAmountEva = 0;
             double engineIgnitorsMaxAmountEva = 0;
             int engineIgnitorsId = PartResourceLibrary.Instance.GetDefinition("EngineIgnitors").id;
             eva.rootPart.GetConnectedResourceTotals(engineIgnitorsId, out engineIgnitorsAmountEva, out engineIgnitorsMaxAmountEva);
@@ -412,31 +447,31 @@ namespace EngineIgnitor
         }
 
         public override void OnSave(ConfigNode node)
-		{
-			foreach (IgnitorResource ignitorResource in IgnitorResources)
-			{
-				ignitorResource.Save(node.AddNode("IGNITOR_RESOURCE"));
-			}
-			base.OnSave(node);
-		}
+        {
+            foreach (IgnitorResource ignitorResource in IgnitorResources)
+            {
+                ignitorResource.Save(node.AddNode("IGNITOR_RESOURCE"));
+            }
+            base.OnSave(node);
+        }
 
-		public override void OnLoad(ConfigNode node)
-		{
-			base.OnLoad(node);
-			IgnitorResourcesStr = new List<string>();
-			IgnitorResources = new List<IgnitorResource>();
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+            IgnitorResourcesStr = new List<string>();
+            IgnitorResources = new List<IgnitorResource>();
 
-			foreach (ConfigNode subNode in node.GetNodes("IGNITOR_RESOURCE"))
-			{
-				if (subNode.HasValue("name") == false || subNode.HasValue("amount") == false)
-				{
-					continue;
-				}
-				IgnitorResource newIgnitorResource = new IgnitorResource();
-				newIgnitorResource.Load(subNode);
-				IgnitorResources.Add(newIgnitorResource);
-				IgnitorResourcesStr.Add(newIgnitorResource.ToString());
-			}
+            foreach (ConfigNode subNode in node.GetNodes("IGNITOR_RESOURCE"))
+            {
+                if (subNode.HasValue("name") == false || subNode.HasValue("amount") == false)
+                {
+                    continue;
+                }
+                IgnitorResource newIgnitorResource = new IgnitorResource();
+                newIgnitorResource.Load(subNode);
+                IgnitorResources.Add(newIgnitorResource);
+                IgnitorResourcesStr.Add(newIgnitorResource.ToString());
+            }
         }
     }
 }
