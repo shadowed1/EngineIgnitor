@@ -63,6 +63,7 @@ namespace EngineIgnitor
 
         [KSPField]
         public float ChanceWhenUnstable = 0.2f;
+
         private float _fuelFlowStability;
         private float _oldFuelFlowStability;
 
@@ -256,14 +257,20 @@ namespace EngineIgnitor
                 {
                     UllageState = "Stable";
                     _fuelFlowStability = 1.0f;
-                    //return true;
+                    return;
                 }
-                UllageState = "UnStable (Chance " + ChanceWhenUnstable + ")";
-                _fuelFlowStability = ChanceWhenUnstable;
-                //return false;
+                else
+                {
+                    UllageState = "UnStable (Chance: " + (100 *(1-ChanceWhenUnstable)) + "%)";
+                    _fuelFlowStability = ChanceWhenUnstable;
+                    return;
+                }
             }
-            UllageState = "Very Stable";
-            _fuelFlowStability = 1.0f;
+            else
+            {
+                UllageState = "Very Stable";
+                _fuelFlowStability = 1.0f;
+            }
             //return true;
         }
 
@@ -271,7 +278,6 @@ namespace EngineIgnitor
         {
             if (oldState == EngineIgnitionState.NOT_IGNITED && _engineState == EngineIgnitionState.IGNITED)
             {
-                ScreenMessages.PostScreenMessage("IgnitionProcess, isExternal: " + isExternal.ToString() + ", IgnitionsRemained: " + IgnitionsRemained.ToString());
                 if (isExternal)
                 {
                     IgnitionsRemained--;
@@ -309,6 +315,7 @@ namespace EngineIgnitor
                     minPotential *= _oldFuelFlowStability;
                     var chance = UnityEngine.Random.Range(0.0f, 1.0f);
                     var attempt = chance <= minPotential;
+                    Debug.Log("EngineIgnitor: minPotential: " + minPotential.ToString() + ", chance: " + chance.ToString());
                     if (!attempt)
                     {
                         ScreenMessages.PostScreenMessage("FAILED BECAUSE OF FUEL FLOW UNSTABILITY", 3f, ScreenMessageStyle.UPPER_CENTER);
