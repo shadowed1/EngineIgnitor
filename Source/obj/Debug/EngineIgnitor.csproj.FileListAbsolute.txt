@@ -52,7 +52,6 @@ D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\Mono.Cecil.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\TDx.TDxInput.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\Boo.Lang.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\UnityScript.Lang.dll
-D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\Mono.Security.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Debug\UnityEngine.xml
 D:\Users\jbb\github\EngineIgnitor\Source\obj\Debug\EngineIgnitor.csproj.CoreCompileInputs.cache
 D:\Users\jbb\github\EngineIgnitor\Source\obj\Debug\EngineIgnitor.dll
