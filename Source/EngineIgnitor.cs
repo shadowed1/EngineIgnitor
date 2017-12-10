@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace EngineIgnitor
 {
+#if false
     public class OnboardIgnitorResource
     {
         public int Id;
@@ -14,7 +15,7 @@ namespace EngineIgnitor
         public double Amount;
         public double MaxAmount;
     }
-
+#endif
     public class ModuleEngineIgnitor : PartModule
     {
         private bool _isEngineMouseOver;
@@ -42,6 +43,11 @@ namespace EngineIgnitor
         [KSPField(isPersistant = false)]
         public float AutoIgnitionTemperature = 800;
 
+        [KSPField(isPersistant = false)]
+        public float ECforIgnition = 0;
+
+        int ecId  = PartResourceLibrary.Instance.GetDefinition("ElectricCharge").id;
+
         [KSPField(isPersistant = false, guiActive = true, guiName = "Auto-Ignite")]
         public string AutoIgnitionState = "?/800";
 
@@ -54,6 +60,9 @@ namespace EngineIgnitor
 
         [KSPField(isPersistant = false)]
         public bool UseUllageSimulation = true;
+
+        [KSPField]
+        public float ChanceWhenUnstable = -1f;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Flow")]
         public string UllageState;      
@@ -71,9 +80,10 @@ namespace EngineIgnitor
 
         private StartState _startState = StartState.None;
 
+#if false
         public List<string> IgnitorResourcesStr;
         public List<IgnitorResource> IgnitorResources;
-
+#endif
 
         public override void OnStart(StartState state)
         {
@@ -95,17 +105,19 @@ namespace EngineIgnitor
 
             if (state == StartState.Editor) IgnitionsRemained = IgnitionsAvailable;
 
+#if false
             IgnitorResources.Clear();
             foreach (string str in IgnitorResourcesStr) IgnitorResources.Add(IgnitorResource.FromString(str));
-
+#endif
         }
 
         public override void OnAwake()
         {
             base.OnAwake();
+#if false
             if (IgnitorResources == null) IgnitorResources = new List<IgnitorResource>();
             if (IgnitorResourcesStr == null) IgnitorResourcesStr = new List<string>();
-
+#endif
 
             if (part.Modules.Contains("ModuleEngines") | part.Modules.Contains("ModuleEnginesFX")) //is part an engine?
             {
@@ -154,7 +166,9 @@ namespace EngineIgnitor
             else ignitorInfo += IgnitorType + " (" + IgnitionsRemained + ").";
 
             string resourceRequired = "No resource requirement for ignition.";
-
+            if (ECforIgnition > 0)
+                resourceRequired = "EC required for ignition: " + ECforIgnition;
+#if false
             if (IgnitorResources.Count > 0)
             {
                 resourceRequired = "Ignition requires: ";
@@ -166,6 +180,7 @@ namespace EngineIgnitor
                     else resourceRequired += ".";
                 }
             }
+#endif
 
             var ullageInfo = UseUllageSimulation ? "Need settling down fuel before ignition." : "Ullage simulation disabled.";
 
@@ -207,7 +222,7 @@ namespace EngineIgnitor
                 AutoIgnitionState = "?/" + AutoIgnitionTemperature.ToString("F1");
 
 
-
+#if false
             var totalRes = new List<OnboardIgnitorResource>();
             for (int i = 0; i < IgnitorResources.Count; i++)
             {
@@ -228,7 +243,7 @@ namespace EngineIgnitor
                 };
                 totalRes.Add(foundResource);
             }
-
+#endif
 
             if (FlightGlobals.ActiveVessel != null)
             {
@@ -242,7 +257,7 @@ namespace EngineIgnitor
             _oldFuelFlowStability = _fuelFlowStability;
             CheckUllageState();
 
-            var isIgnited = IgnitionProcess(oldState, IsExternal, totalRes);
+            var isIgnited = IgnitionProcess(oldState, IsExternal); //, totalRes);
 
             IgnitionResult(IsExternal, isIgnited);
         }
@@ -299,8 +314,11 @@ namespace EngineIgnitor
                 else
                 {
                     Log.Info("Unstable");
-                    _fuelFlowStability = (float)HighLogic.CurrentGame.Parameters.CustomParams<EI>().ChanceWhenUnstable / 100;
-                    UllageState = "UnStable (Success Chance: " + HighLogic.CurrentGame.Parameters.CustomParams<EI>().ChanceWhenUnstable + "%)";
+                    if (ChanceWhenUnstable >= 0)
+                        _fuelFlowStability = ChanceWhenUnstable;
+                    else
+                        _fuelFlowStability = (float)HighLogic.CurrentGame.Parameters.CustomParams<EI>().ChanceWhenUnstable / 100;
+                    UllageState = "UnStable (Success Chance: " + (_fuelFlowStability*100f) + "%)";
                     
                     return;
                 }
@@ -313,19 +331,32 @@ namespace EngineIgnitor
             //return true;
         }
 
-        private bool IgnitionProcess(EngineIgnitionState oldState, bool isExternal, List<OnboardIgnitorResource> aaa)
+        private bool IgnitionProcess(EngineIgnitionState oldState, bool isExternal) //, List<OnboardIgnitorResource> aaa)
         {
             if (oldState == EngineIgnitionState.NOT_IGNITED && _engineState == EngineIgnitionState.IGNITED)
             {
                 if (isExternal)
                 {
-                    IgnitionsRemained--;
+                    //IgnitionsRemained--;
                     return true;
                 }
-
+                Log.Info("IgnitionProcess, IgnitionsRemained: " + IgnitionsRemained + ",  ECforIgnition: " + ECforIgnition);
                 if (IgnitionsRemained > 0 || IgnitionsRemained == -1)
                 {
+                    double ec = 0;
+                    if (ECforIgnition > 0)
+                    { 
+                        ec = part.vessel.RequestResource(this.part, ecId, ECforIgnition, false);
+                        if (ec != ECforIgnition)
+                        {
+                            ScreenMessages.PostScreenMessage("Do not have enough Electrical Charge", 3f, ScreenMessageStyle.UPPER_CENTER);
+                            _engineState = EngineIgnitionState.NOT_IGNITED;
+                            return false;
+                        }
+                    }
                     IgnitionsRemained--;
+
+#if false
                     if (IgnitorResources.Count > 0)
                     {
                         string aa = null;
@@ -346,6 +377,7 @@ namespace EngineIgnitor
                             return false;
                         }
                     }
+#endif
                 }
 
                 float minPotential = 1.0f;
@@ -446,6 +478,7 @@ namespace EngineIgnitor
                 ScreenMessages.PostScreenMessage("Requires engineer power.", 4.0f, ScreenMessageStyle.UPPER_CENTER);
         }
 
+#if false
         public override void OnSave(ConfigNode node)
         {
             foreach (IgnitorResource ignitorResource in IgnitorResources)
@@ -473,5 +506,6 @@ namespace EngineIgnitor
                 IgnitorResourcesStr.Add(newIgnitorResource.ToString());
             }
         }
+#endif
     }
 }

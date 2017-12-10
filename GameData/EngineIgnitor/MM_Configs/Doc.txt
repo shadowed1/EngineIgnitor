@@ -1,0 +1,14 @@
+ModuleEngineIgnitor
+
+IgnitionsAvailable
+IgnitorType
+AutoIgnitionTemperature
+UseUllageSimulation
+ChanceWhenUnstable
+
+ModuleExternalIgnitor
+
+IgnitionsAvailable
+IgnitorType
+IgniteRange
+

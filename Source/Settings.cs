@@ -23,7 +23,8 @@ namespace EngineIgnitor
         public override bool HasPresets { get { return false; } }
 
 
-        [GameParameters.CustomFloatParameterUI("Weightless success chance", minValue = 0f, maxValue = 100.0f)]
+        [GameParameters.CustomFloatParameterUI("Unstable success chance", minValue = 0f, maxValue = 100.0f,
+            toolTip ="Base chance of a successful ignition when the fuel is unstable.")]
         public double ChanceWhenUnstable = 20f;
 
 

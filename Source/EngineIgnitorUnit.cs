@@ -55,7 +55,7 @@ namespace EngineIgnitor
         }
     }
 
-
+#if false
     public class EngineIgnitorEVA : PartModule
     {
         private KerbalInfo _info = new KerbalInfo();
@@ -138,4 +138,5 @@ namespace EngineIgnitor
             }
         }
     }
+#endif
 }

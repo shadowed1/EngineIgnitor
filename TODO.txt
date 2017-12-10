@@ -7,3 +7,5 @@ TODO List
 2	Check engine orientation related to current accel to determine G force on engine
 
 
+Look into the throttle restrictor, to set engine throttle to 0 
+ sets an engines minThrust value to 0 while the throttle position is also set to zero. 

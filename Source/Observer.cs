@@ -21,11 +21,13 @@ namespace EngineIgnitor
         private void OnRecovery(Vessel data)
         {
             //asdf
+#if false
             foreach (var kerbal in data.GetVesselCrew())
             {
                 if (File.Exists<EngineIgnitorEVA>(kerbal.name + ".sav"))
                     File.Delete<EngineIgnitorEVA>(kerbal.name + ".sav");
             }
+#endif
         }
     }
 }
