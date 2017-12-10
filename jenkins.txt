@@ -24,7 +24,7 @@
 1:EngineIgnitor, EngineIgnitor.version
 
 # 2:PROJNAME, PROJFILE, VERSIONFILE, PLUGINSFOLDER
-2:EngineIgnitor,EngineIgnitor/EngineIgnitor.csproj,EngineIgnitor.version,GameData/EngineIgnitor/Plugins
+2:EngineIgnitor,Source/EngineIgnitor.csproj,EngineIgnitor.version,GameData/EngineIgnitor/Plugins
 
 # 3:SOURCEFILE, DESTDIR
 3:EngineIgnitor.version,GameData/EngineIgnitor
