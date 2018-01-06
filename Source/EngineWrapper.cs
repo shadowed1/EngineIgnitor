@@ -47,6 +47,15 @@ namespace EngineIgnitor
             //set { engineFX.EngineIgnited = value; }
         }
 
+        public Vector3d ForwardTransform
+        {
+            get
+            {
+                if (isModuleEngineFX == false) return engine.thrustTransforms[0].forward;
+                return engineFX.thrustTransforms[0].forward;
+                
+            }
+        }
         public string status
         {
             get
@@ -57,7 +66,7 @@ namespace EngineIgnitor
         }
  
 
-        public float requestedThrust
+        public float requestedThrottle
 		{
 			get
 			{

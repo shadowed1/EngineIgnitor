@@ -6,16 +6,8 @@ using UnityEngine;
 
 namespace EngineIgnitor
 {
-#if false
-    public class OnboardIgnitorResource
-    {
-        public int Id;
-        public string Name;
-        public float Request;
-        public double Amount;
-        public double MaxAmount;
-    }
-#endif
+
+
     public class ModuleEngineIgnitor : PartModule
     {
         private bool _isEngineMouseOver;
@@ -46,7 +38,7 @@ namespace EngineIgnitor
         [KSPField(isPersistant = false)]
         public float ECforIgnition = 0;
 
-        int ecId  = PartResourceLibrary.Instance.GetDefinition("ElectricCharge").id;
+        int ecId = PartResourceLibrary.Instance.GetDefinition("ElectricCharge").id;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Auto-Ignite")]
         public string AutoIgnitionState = "?/800";
@@ -64,8 +56,13 @@ namespace EngineIgnitor
         [KSPField]
         public float ChanceWhenUnstable = -1f;
 
+        [KSPField]
+        public bool DontUseIgnitorIfMultiModeOn = false;
+
+        bool MultiModeEngine = false;
+
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Flow")]
-        public string UllageState;      
+        public string UllageState;
 
         private float _fuelFlowStability;
         private float _oldFuelFlowStability;
@@ -78,65 +75,42 @@ namespace EngineIgnitor
         [KSPField(isPersistant = false, guiActive = true, guiName = "Engine State")]
         private EngineIgnitionState _engineState = EngineIgnitionState.INVALID;
 
-        private StartState _startState = StartState.None;
 
-#if false
-        public List<string> IgnitorResourcesStr;
-        public List<IgnitorResource> IgnitorResources;
-#endif
-
-        public override void OnStart(StartState state)
+        public void Start()
         {
-           
-            _startState = state;
+            Log.Info("ModuleEngineIgnitor.Start, part: " + part.partInfo.title);
+
             _engines.Clear();
+            if (part == null || part.Modules == null)
+                return;
             foreach (PartModule module in part.Modules)
             {
-                if (module is ModuleEngines)
+                if (module.moduleName == "ModuleEnginesFX") //find partmodule engine on the part
                 {
+                    Log.Info("Adding ModuleEnginesFX, engineID:" + ((ModuleEnginesFX)module).engineID);
+                    _engines.Add(new EngineWrapper(module as ModuleEnginesFX));
+
+                }
+                if (module.moduleName == "ModuleEngines") //find partmodule engine on the part
+                {
+                    Log.Info("Adding ModuleEngine, engineID:" + ((ModuleEngines)module).engineID);
                     _engines.Add(new EngineWrapper(module as ModuleEngines));
                 }
-                if (module is ModuleEnginesFX)
-                {
-                    _engines.Add(new EngineWrapper(module as ModuleEnginesFX));
-                }
+                if (module.moduleName == "MultiModeEngine")
+                    MultiModeEngine = true;
+
+            }
+            Log.Info("OnStart, EngineIndex: " + EngineIndex + ",   _engines.Count: " + _engines.Count());
+            if (EngineIndex > _engines.Count())
+            {
+                Log.Info("EngineIndex out of bounds");
+                return;
             }
             _engine = _engines.Count > EngineIndex ? _engines[EngineIndex] : null;
 
-            if (state == StartState.Editor) IgnitionsRemained = IgnitionsAvailable;
-
-#if false
-            IgnitorResources.Clear();
-            foreach (string str in IgnitorResourcesStr) IgnitorResources.Add(IgnitorResource.FromString(str));
-#endif
+            if (IgnitionsRemained == -1) IgnitionsRemained = IgnitionsAvailable;
         }
 
-        public override void OnAwake()
-        {
-            base.OnAwake();
-#if false
-            if (IgnitorResources == null) IgnitorResources = new List<IgnitorResource>();
-            if (IgnitorResourcesStr == null) IgnitorResourcesStr = new List<string>();
-#endif
-
-            if (part.Modules.Contains("ModuleEngines") | part.Modules.Contains("ModuleEnginesFX")) //is part an engine?
-            {
-                foreach (PartModule pm in part.Modules) //change from part to partmodules
-                {
-                    if (pm.moduleName == "ModuleEngines") //find partmodule engine on th epart
-                    {
-                        em = (ModuleEngines)pm;
-                        break;
-                    }
-                    if (pm.moduleName == "ModuleEnginesFX") //find partmodule engine on th epart
-                    {
-                        emfx = (ModuleEnginesFX)pm;
-                        break;
-                    }
-                }
-            }
-
-        }
 
         public override string GetInfo()
         {
@@ -155,6 +129,43 @@ namespace EngineIgnitor
             if (HighLogic.LoadedSceneIsEditor) _isEngineMouseOver = false;
         }
 
+        int CurrentActiveMode()
+        {
+            int cnt = 0;
+            foreach (PartModule pm in part.Modules) //change from part to partmodules
+            {
+                if (pm.moduleName == "ModuleEngines") //find partmodule engine on the part
+                {
+                    ModuleEngines em = pm as ModuleEngines;
+                    cnt++;
+                    if (em.EngineIgnited)
+                        break;
+                }
+                if (pm.moduleName == "ModuleEnginesFX") //find partmodule engine on the part
+                {
+                    cnt++;
+                    ModuleEnginesFX emfx = pm as ModuleEnginesFX;
+                    if (emfx.EngineIgnited == true)
+                        break;
+                }
+            }
+            return cnt - 1;
+        }
+        bool EnoughECforIgnition()
+        {
+            if (ECforIgnition > 0)
+                return true;
+            // need to add check for multimode engine here
+            if (MultiModeEngine)
+            {
+
+
+                if (EngineIndex == CurrentActiveMode())
+                    return false;
+            }
+            return true;
+        }
+
         void OnGUI()
         {
 
@@ -166,21 +177,9 @@ namespace EngineIgnitor
             else ignitorInfo += IgnitorType + " (" + IgnitionsRemained + ").";
 
             string resourceRequired = "No resource requirement for ignition.";
-            if (ECforIgnition > 0)
+            if (EnoughECforIgnition())
                 resourceRequired = "EC required for ignition: " + ECforIgnition;
-#if false
-            if (IgnitorResources.Count > 0)
-            {
-                resourceRequired = "Ignition requires: ";
-                for (int i = 0; i < IgnitorResources.Count; ++i)
-                {
-                    IgnitorResource resource = IgnitorResources[i];
-                    resourceRequired += resource.Name + "(" + resource.Amount.ToString("F1") + ")";
-                    if (i != IgnitorResources.Count - 1) resourceRequired += ", ";
-                    else resourceRequired += ".";
-                }
-            }
-#endif
+
 
             var ullageInfo = UseUllageSimulation ? "Need settling down fuel before ignition." : "Ullage simulation disabled.";
 
@@ -196,8 +195,13 @@ namespace EngineIgnitor
             GUI.Label(ullageInfoRect, ullageInfo, ignitorInfoStyle);
         }
 
-        private void Update()
+        bool autoShutdown = false;
+        private void FixedUpdate()
         {
+            if (_engine == null)
+                Log.Info("ModuleEngineIgnitor.Update, _engine == null");
+            else
+                Log.Info("ModuleEngineIgnitor.Update, _engine.allowShutdown: " + _engine.allowShutdown);
             if (!HighLogic.LoadedSceneIsFlight || _engine == null || !_engine.allowShutdown) return;
 
             if (vessel.Landed)
@@ -205,14 +209,21 @@ namespace EngineIgnitor
                 IsExternal = CheckExternalIgnitor();
                 if (IsExternal)
                     IgnitionsAvailableString = "Provided from Ground" + " : [ " + IgnitionsRemained + "/" + IgnitionsAvailable + " ]";
-                else if (IgnitionsRemained != -1)
-                    IgnitionsAvailableString = IgnitorType + " : [ " + IgnitionsRemained + "/" + IgnitionsAvailable + " ]";
+                else
+                {
+                    if (IgnitionsRemained != -1)
+                        IgnitionsAvailableString = IgnitorType + " : [ " + IgnitionsRemained + "/" + IgnitionsAvailable + " ]";
+                    else
+                        IgnitionsAvailableString = "Unlimited";
+                }
             }
             else
             {
                 IsExternal = false;
                 if (IgnitionsRemained != -1)
                     IgnitionsAvailableString = IgnitorType + " : [ " + IgnitionsRemained + "/" + IgnitionsAvailable + " ]";
+                else
+                    IgnitionsAvailableString = "Unlimited";
             }
 
 
@@ -222,28 +233,6 @@ namespace EngineIgnitor
                 AutoIgnitionState = "?/" + AutoIgnitionTemperature.ToString("F1");
 
 
-#if false
-            var totalRes = new List<OnboardIgnitorResource>();
-            for (int i = 0; i < IgnitorResources.Count; i++)
-            {
-
-                double resourceAmount = 0f;
-                double resourceMaxAmount = 0f;
-                int resourceId = PartResourceLibrary.Instance.GetDefinition(IgnitorResources[i].Name).id;
-
-
-                if (part != null) part.GetConnectedResourceTotals(resourceId, out resourceAmount, out resourceMaxAmount);
-                var foundResource = new OnboardIgnitorResource
-                {
-                    Id = resourceId,
-                    Name = IgnitorResources[i].Name,
-                    Request = IgnitorResources[i].Amount,
-                    Amount = resourceAmount,
-                    MaxAmount = resourceMaxAmount
-                };
-                totalRes.Add(foundResource);
-            }
-#endif
 
             if (FlightGlobals.ActiveVessel != null)
             {
@@ -253,6 +242,18 @@ namespace EngineIgnitor
 
             var oldState = _engineState;
             DecideNewState(oldState);
+
+            Log.Info("oldEngineThrottle: " + oldEngineThrottle + ", autoShutdown: " + autoShutdown);
+            if (_engine.requestedThrottle > 0.0f)
+                autoShutdown = false;
+            else
+            {
+                if (!autoShutdown)
+                {
+                    _engineState = EngineIgnitionState.NOT_IGNITED;
+                    autoShutdown = true;
+                }
+            }
 
             _oldFuelFlowStability = _fuelFlowStability;
             CheckUllageState();
@@ -264,7 +265,11 @@ namespace EngineIgnitor
 
         private void DecideNewState(EngineIgnitionState oldState)
         {
-            if (_engine.requestedThrust <= 0.0f || _engine.flameout || (_engine.EngineIgnited == false && _engine.allowShutdown))
+            if (_engine.EngineIgnited)
+                Log.Info("DecidenewState, oldState: " + oldState + ", _engine.requestedThrottle: " + _engine.requestedThrottle +
+                    ", _engine.EngineIgnited: " + _engine.EngineIgnited + ", _engine.allowShutdown: " + _engine.allowShutdown);
+
+            if ((_engine.requestedThrottle <= 0.0f && !MultiModeEngine) || _engine.flameout || (_engine.EngineIgnited == false && _engine.allowShutdown))
             {
                 if (_engine.part.temperature >= AutoIgnitionTemperature)
                     _engineState = EngineIgnitionState.HIGH_TEMP;
@@ -277,34 +282,32 @@ namespace EngineIgnitor
                 {
                     //When changing from not-ignited to ignited, we must ensure that the throttle is non-zero or locked (SRBs)
                     if (vessel.ctrlState.mainThrottle > 0.0f || _engine.throttleLocked)
+                    {
                         _engineState = EngineIgnitionState.IGNITED;
+                        autoShutdown = false;
+                    }
                     else
                         _engineState = EngineIgnitionState.NOT_IGNITED;
                 }
             }
         }
 
-        ModuleEngines em;
-        ModuleEnginesFX emfx;
 
         private void CheckUllageState()
         {
             if (UseUllageSimulation)
             {
-                Vector3d x = new Vector3d() ;
+                Vector3d x = new Vector3d();
 
-                if (em != null)
-                    x = em.thrustTransforms[0].forward;
-                if (emfx != null)
-                    x = emfx.thrustTransforms[0].forward;
-               
+                x = _engine.ForwardTransform;
+
                 Vector3d geeForceVector = vessel.obt_velocity - vessel.lastVel - vessel.graviticAcceleration / TimeWarp.fixedDeltaTime;
                 var a = 180 - Vector3.Angle(x, geeForceVector);
 
-                Log.Info("vessel.acceleration_immediate: " + vessel.acceleration_immediate);
-                Log.Info("Angle: " + a);
-                Log.Info("vessel.geeForce_immediate: " + vessel.geeForce_immediate + ", vessel.geeForce: " + vessel.geeForce);
-                Log.Info("Math.Cos(a) * vessel.geeForce_immediate: " + (Math.Cos(a) * vessel.geeForce_immediate).ToString());
+                //Log.Info("vessel.acceleration_immediate: " + vessel.acceleration_immediate);
+                //Log.Info("Angle: " + a);
+                //Log.Info("vessel.geeForce_immediate: " + vessel.geeForce_immediate + ", vessel.geeForce: " + vessel.geeForce);
+                //Log.Info("Math.Cos(a) * vessel.geeForce_immediate: " + (Math.Cos(a) * vessel.geeForce_immediate).ToString());
                 if (a < 90 && Math.Cos(a) * vessel.geeForce_immediate >= 0.01 || vessel.Landed)
                 {
                     UllageState = "Stable";
@@ -318,8 +321,8 @@ namespace EngineIgnitor
                         _fuelFlowStability = ChanceWhenUnstable;
                     else
                         _fuelFlowStability = (float)HighLogic.CurrentGame.Parameters.CustomParams<EI>().ChanceWhenUnstable / 100;
-                    UllageState = "UnStable (Success Chance: " + (_fuelFlowStability*100f) + "%)";
-                    
+                    UllageState = "UnStable (Success Chance: " + (_fuelFlowStability * 100f) + "%)";
+
                     return;
                 }
             }
@@ -331,53 +334,91 @@ namespace EngineIgnitor
             //return true;
         }
 
+
+        float oldEngineThrottle = 0;
+        bool OtherEngineModeActive()
+        {
+            string s;
+
+            // Check to see if any other engine mode is on
+            int cnt = 0;
+            foreach (PartModule pm in part.Modules) //change from part to partmodules
+            {
+                if (pm.moduleName == "ModuleEngines") //find partmodule engine on the part
+                {
+                    if (cnt == EngineIndex)
+                        continue;
+                    cnt++;
+                    ModuleEngines em = pm as ModuleEngines;
+
+                    bool deprived = em.CheckDeprived(.01, out s);
+                    if (em.EngineIgnited == true && !em.flameout && !deprived)
+                    {
+                        oldEngineThrottle = em.requestedThrottle;
+                        return true;
+                    }
+                }
+                if (pm.moduleName == "ModuleEnginesFX") //find partmodule engine on the part
+                {
+                    if (cnt == EngineIndex)
+                        continue;
+                    cnt++;
+                    ModuleEnginesFX emfx = pm as ModuleEnginesFX;
+
+                    bool deprived = emfx.CheckDeprived(.01, out s);
+                    if (emfx.EngineIgnited == true && !emfx.flameout && !deprived)
+                    {
+                        oldEngineThrottle = emfx.requestedThrottle;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         private bool IgnitionProcess(EngineIgnitionState oldState, bool isExternal) //, List<OnboardIgnitorResource> aaa)
         {
+            Log.Info("IgnitionProcess, oldState: " + oldState + ", _engineState: " + _engineState + ",   isExternal: " + isExternal);
+
+            if (DontUseIgnitorIfMultiModeOn && OtherEngineModeActive())
+            {
+                _engineState = EngineIgnitionState.IGNITED;
+                autoShutdown = false;
+                Log.Info("IgnitionProcess, engine already ignited");
+                return true;
+            }
             if (oldState == EngineIgnitionState.NOT_IGNITED && _engineState == EngineIgnitionState.IGNITED)
             {
                 if (isExternal)
                 {
-                    //IgnitionsRemained--;
                     return true;
                 }
-                Log.Info("IgnitionProcess, IgnitionsRemained: " + IgnitionsRemained + ",  ECforIgnition: " + ECforIgnition);
-                if (IgnitionsRemained > 0 || IgnitionsRemained == -1)
+                Log.Info("IgnitionProcess, IgnitionsRemained: " + IgnitionsRemained + ",  ECforIgnition: " + ECforIgnition +
+                    ", MultiModeEngine: " + MultiModeEngine + ", CurrentActiveMode: " + CurrentActiveMode());
+                if (!MultiModeEngine || (MultiModeEngine && !OtherEngineModeActive()) || CurrentActiveMode() == EngineIndex)
                 {
-                    double ec = 0;
-                    if (ECforIgnition > 0)
-                    { 
-                        ec = part.vessel.RequestResource(this.part, ecId, ECforIgnition, false);
-                        if (ec != ECforIgnition)
-                        {
-                            ScreenMessages.PostScreenMessage("Do not have enough Electrical Charge", 3f, ScreenMessageStyle.UPPER_CENTER);
-                            _engineState = EngineIgnitionState.NOT_IGNITED;
-                            return false;
-                        }
-                    }
-                    IgnitionsRemained--;
-
-#if false
-                    if (IgnitorResources.Count > 0)
+                    if (IgnitionsRemained > 0 || IgnitionsRemained == -1)
                     {
-                        string aa = null;
-                        foreach (var a in aaa)
+                        double ec = 0;
+                        if (EnoughECforIgnition())
                         {
-                            if (a.Amount >= a.Request)
-                                part.RequestResource(a.Id, a.Request);
-                            else
+
+                            ec = part.RequestResource(ecId, ECforIgnition);
+                            if (ec != ECforIgnition)
                             {
-                                aa = a.Name;
-                                break;
+                                ScreenMessages.PostScreenMessage("Do not have enough Electrical Charge", 3f, ScreenMessageStyle.UPPER_CENTER);
+                                _engineState = EngineIgnitionState.NOT_IGNITED;
+                                return false;
                             }
                         }
-                        if (aa != null)
-                        {
-                            ScreenMessages.PostScreenMessage("DO NOT HAVE ENOUGH " + aa, 3f, ScreenMessageStyle.UPPER_CENTER);
-                            _engineState = EngineIgnitionState.NOT_IGNITED;
-                            return false;
-                        }
+
+                        IgnitionsRemained--;
                     }
-#endif
+                    else
+                    {
+                        _engineState = EngineIgnitionState.NOT_IGNITED;
+                        return false;
+                    }
                 }
 
                 float minPotential = 1.0f;
@@ -399,19 +440,23 @@ namespace EngineIgnitor
             if (oldState == EngineIgnitionState.HIGH_TEMP && _engineState == EngineIgnitionState.IGNITED)
             {
                 _engineState = EngineIgnitionState.IGNITED;
+                autoShutdown = false;
                 return true;
             }
+
             return true;
         }
 
         private void IgnitionResult(bool isExternal, bool isIgnited)
         {
+            Log.Info("IgnitionResult, isExternal: " + isExternal + ", isIgnited: " + isIgnited
+                );
             if (_engineState == EngineIgnitionState.NOT_IGNITED && ((IgnitionsRemained == 0 && !isExternal) || !isIgnited))
             {
                 if (_engine.EngineIgnited)
                 {
                     if (IgnitionsRemained == 0)
-                        ScreenMessages.PostScreenMessage("NO AVAILABLE IGNITIONS", 3f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage("No available ignitors", 3f, ScreenMessageStyle.UPPER_CENTER);
                     _engine.BurstFlameoutGroups();
                     _engine.SetRunningGroupsActive(false);
                     foreach (BaseEvent baseEvent in _engine.Events)

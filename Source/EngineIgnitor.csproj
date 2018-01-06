@@ -40,6 +40,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
+    <Compile Include="Control.cs" />
     <Compile Include="EngineIgnitor.cs" />
     <Compile Include="EngineIgnitorUnit.cs" />
     <Compile Include="EngineIgnitorExternal.cs" />
@@ -49,6 +50,7 @@
     <Compile Include="Observer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="ToolbarWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AssemblyVersion.tt">
@@ -57,29 +59,31 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>R:\KSP_1.3.0_dev\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>R:\KSP_1.3.0_dev\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-UnityScript-firstpass">
-      <HintPath>R:\KSP_1.3.0_dev\KSP_x64_Data\Managed\Assembly-UnityScript-firstpass.dll</HintPath>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="System">
-      <HintPath>R:\KSP_1.3.0_dev\KSP_x64_Data\Managed\System.dll</HintPath>
+      <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\System.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="UnityEngine">
-      <HintPath>R:\KSP_1.3.0_dev\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="System.Xml">
+      <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\System.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

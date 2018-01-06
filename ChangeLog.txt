@@ -1,21 +1,39 @@
 1.3.0.1
-	Fixed Ignitor update in the PAW when in flight
-	Changed the dash to a colon between the ignitor type and the count remaining
-	Reorganized directories, removed unnecessary OLDD directory
+	Added code to prevent use of an ignitor when a multimode engine switches from one mode to another
+	Added RAPIER patch
+	Added new config values for multimode engines
+	Added button to toggle Engine Ignitor functionality
+	Added settings to enable/disable the button to toggle the functionality
+	Added settings to select to use Blizzy if available
+	Fixed Rapiers not using ignitors when shut down
 
-1.3.0.2
-	Fixed fuel simulation code
-
-1.3.0.3
-	Removed HypergolicFluid 
-
-1.3.0.4
-	Added check for angle of engine related to accel to determine whether stable or not
-	Added Settings to configure the chance for ignition while weightless (ChanceWhenUnstable)
+1.3.0.6
+	Removed EngineIgnitor resources
 
 1.3.0.5
 	Removed old Hypergolic fuel tank
 	Make ChanceWhenUnstable use config if exists, otherwise use settings
 
-1.3.0.x
-	Removed EngineIgnitor resources
+1.3.0.4
+	Added check for angle of engine related to accel to determine whether stable or not
+	Added Settings to configure the chance for ignition while weightless (ChanceWhenUnstable)
+
+1.3.0.3
+	Removed HypergolicFluid 
+
+1.3.0.2
+	Fixed fuel simulation code
+
+1.3.0.1
+	Fixed Ignitor update in the PAW when in flight
+	Changed the dash to a colon between the ignitor type and the count remaining
+	Reorganized directories, removed unnecessary OLDD directory
+
+
+
+
+
+
+
+
+

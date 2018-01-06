@@ -8,7 +8,6 @@ namespace EngineIgnitor
 {
 	public class EngineIgnitorToolbox : PartModule
 	{
-        private StartState _startState = StartState.None;
 
         private double _engineIgnitorsAmount;
         private double _engineIgnitorsMaxAmount;
@@ -16,14 +15,12 @@ namespace EngineIgnitor
         private double _engineIgnitorsMaxAmountEva;
         private readonly int _engineIgnitorsId = PartResourceLibrary.Instance.GetDefinition("EngineIgnitors").id;
 
-        public override void OnStart(StartState state)
-	    {
-	        _startState = state;
-	    }
 
-	    public override void OnUpdate()
+	    public  void Update()
 	    {
-            if (_startState == StartState.None || _startState == StartState.Editor) return;
+            if (HighLogic.LoadedSceneIsEditor) return;
+            if (!Control.IgnitorActive)
+                return;
 
             part.GetConnectedResourceTotals(_engineIgnitorsId, out _engineIgnitorsAmount, out _engineIgnitorsMaxAmount);
 

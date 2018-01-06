@@ -27,8 +27,14 @@ namespace EngineIgnitor
             toolTip ="Base chance of a successful ignition when the fuel is unstable.")]
         public double ChanceWhenUnstable = 20f;
 
+        [GameParameters.CustomParameterUI("Allow test mode",
+            toolTip = " If enabled, then there will be a toolbar button (either Blizzy or stock) to enable a test mode, which essentially disables this mod.\n (may require scene change to activate)")]
+        public bool allowTestMode = false;
 
-       
+        [GameParameters.CustomParameterUI("Use Blizzy Toolbar", toolTip ="If available (will require scene change to activate)")]
+        public bool useBlizzy = false;
+
+
 
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)

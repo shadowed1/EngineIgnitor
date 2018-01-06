@@ -25,13 +25,12 @@ namespace EngineIgnitor
         [KSPField(isPersistant = false)]
 		public float IgniteRange = 1f;
 
-        private StartState _startState = StartState.None;
+
         private float _distanceToEngine;
 
-        public override void OnStart(StartState state)
+        public void Start()
         {
-            _startState = state;
-            if (state != StartState.None && state != StartState.Editor)
+            if (HighLogic.LoadedSceneIsFlight)
 			{
 				if(ExternalIgnitors.Contains(this) == false)
 					ExternalIgnitors.Add(this);
@@ -40,6 +39,8 @@ namespace EngineIgnitor
 
         private void Update()
         {
+            if (!Control.IgnitorActive)
+                return;
             if (HighLogic.LoadedSceneIsEditor && EditorLogic.fetch.ship != null)
             {
                 foreach (var p in EditorLogic.fetch.ship.parts)
@@ -65,7 +66,7 @@ namespace EngineIgnitor
                 else _enginesInRange = "NO";
             }
 
-            if (_startState != StartState.None && _startState != StartState.Editor)
+            if (HighLogic.LoadedSceneIsFlight)
             {
                 if (IgnitionsRemained != -1)
 					_ignitionsAvailableString = IgnitorType + " - " + IgnitionsRemained + "/" + IgnitionsAvailable;
