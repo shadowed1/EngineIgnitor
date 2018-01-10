@@ -91,7 +91,7 @@
 start /D D:\Users\jbb\github\EngineIgnitor /WAIT deploy.bat  $(TargetDir) $(TargetFileName)
 
 if $(ConfigurationName) == Release (
-start /D D:\Users\jbb\github\EngineIgnitor /WAIT buildRelease.bat $(TargetDir) $(TargetFileName)
+     start /D D:\Users\jbb\github\EngineIgnitor /WAIT buildRelease.bat $(TargetDir) $(TargetFileName)
 )
 </PostBuildEvent>
   </PropertyGroup>

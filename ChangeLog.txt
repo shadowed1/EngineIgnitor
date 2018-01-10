@@ -1,4 +1,4 @@
-1.3.0.1
+1.3.1
 	Added code to prevent use of an ignitor when a multimode engine switches from one mode to another
 	Added RAPIER patch
 	Added new config values for multimode engines
@@ -6,6 +6,7 @@
 	Added settings to enable/disable the button to toggle the functionality
 	Added settings to select to use Blizzy if available
 	Fixed Rapiers not using ignitors when shut down
+	Updated all configs, removing duplicates, making values more sensible, thanks @Errol
 
 1.3.0.6
 	Removed EngineIgnitor resources
