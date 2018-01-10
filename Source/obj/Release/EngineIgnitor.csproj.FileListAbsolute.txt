@@ -15,4 +15,3 @@ D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\Mono.Cecil.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\TDx.TDxInput.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\Mono.Security.dll
 D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\UnityEngine.xml
-D:\Users\jbb\github\EngineIgnitor\Source\obj\Release\EngineIgnitor.csprojResolveAssemblyReference.cache
