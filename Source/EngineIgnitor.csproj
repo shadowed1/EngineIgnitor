@@ -76,6 +76,9 @@
     <Reference Include="System.Xml">
       <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\System.Xml.dll</HintPath>
     </Reference>
+    <Reference Include="ToolbarControl">
+      <HintPath>R:\KSP_1.3.1_dev\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
