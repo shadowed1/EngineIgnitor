@@ -1,5 +1,9 @@
+1.3.2.2
+	Added Tantares, thanks @woeller
+
 1.3.2.1
 	Fixed log spam during flight, nullref from OnGUI module
+	Added Tantares LV, thanks @woeller
 
 1.3.2
 	Thanks to @eberkain for the following updates:

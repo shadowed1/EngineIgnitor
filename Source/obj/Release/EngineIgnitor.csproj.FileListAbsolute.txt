@@ -16,3 +16,4 @@ D:\Users\jbb\github\EngineIgnitor\Source\bin\Release\UnityEngine.xml
 D:\Users\jbb\github\EngineIgnitor\Source\obj\Release\EngineIgnitor.csproj.CoreCompileInputs.cache
 D:\Users\jbb\github\EngineIgnitor\Source\obj\Release\EngineIgnitor.dll
 D:\Users\jbb\github\EngineIgnitor\Source\obj\Release\EngineIgnitor.pdb
+D:\Users\jbb\github\EngineIgnitor\Source\obj\Release\EngineIgnitor.csprojResolveAssemblyReference.cache
