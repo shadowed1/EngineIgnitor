@@ -15,8 +15,6 @@ rem Copy files to GameData locations
 
 
 copy /Y "%1%2" "GameData\%GAMEDIR%\Plugins"
-xcopy /e /y MM_Configs GameData\%GAMEDIR%\MM_Configs
-xcopy /e /y Resources GameData\%GAMEDIR%\Resources
 
 copy /Y %GAMEDIR%.version GameData\%GAMEDIR%
 copy /Y ..\MiniAVC.dll GameData\%GAMEDIR%
@@ -51,3 +49,4 @@ rem Build the zip FILE
 set FILE="%RELEASEDIR%\%GAMEDIR%-%VERSION%.zip"
 IF EXIST %FILE% del /F %FILE%
 %ZIP% a -tzip %FILE% GameData
+

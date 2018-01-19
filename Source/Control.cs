@@ -237,7 +237,8 @@ namespace EngineIgnitor
 #endif
         public void OnGUI()
         {
-            toolbarControl.UseBlizzy(HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy);
+            if (toolbarControl != null)
+                toolbarControl.UseBlizzy(HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy);
 #if false
             if (ToolbarManager.ToolbarAvailable && activeToolbarType == ToolBarSelected.stock && HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy)
             {
