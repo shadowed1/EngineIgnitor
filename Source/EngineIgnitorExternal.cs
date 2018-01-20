@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace EngineIgnitor
 {
@@ -19,14 +20,14 @@ namespace EngineIgnitor
 		[KSPField(isPersistant = false)]
 		public string IgnitorType = "universal";
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Engines in range:")]
-        private string _enginesInRange = "NO";
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Engines in range")]
+        public string _enginesInRange = "NO";
 
-        [KSPField(isPersistant = false)]
+        [KSPField(guiName = "Ignitor range", isPersistant = false, guiActiveEditor = true, guiActive = true, guiFormat = "N1")]
 		public float IgniteRange = 1f;
 
-
-        private float _distanceToEngine;
+        [KSPField(guiName = "Distance to engine", isPersistant = false, guiActiveEditor = true, guiActive = true, guiFormat = "N1")]
+        public float _distanceToEngine;
 
         public void Start()
         {
@@ -50,7 +51,7 @@ namespace EngineIgnitor
                         _distanceToEngine = Vector3.Distance(part.transform.position, p.transform.position);
                     }
                 }
-                if (_distanceToEngine <= IgniteRange && EditorLogic.fetch.ship != null) _enginesInRange = "YES";
+                if (Math.Round(_distanceToEngine,1) <= IgniteRange && EditorLogic.fetch.ship != null) _enginesInRange = "YES";
                 else _enginesInRange = "NO";
             }
             else
@@ -62,7 +63,7 @@ namespace EngineIgnitor
                         _distanceToEngine = Vector3.Distance(part.transform.position, p.transform.position);
                     }
                 }
-                if (_distanceToEngine <= IgniteRange && vessel != null) _enginesInRange = "YES";
+                if (Math.Round(_distanceToEngine,1) <= IgniteRange && vessel != null) _enginesInRange = "YES";
                 else _enginesInRange = "NO";
             }
 

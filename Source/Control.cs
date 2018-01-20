@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection;
 using KSP.UI.Screens;
 using UnityEngine;
+using ToolbarControl_NS;
 
 namespace EngineIgnitor
 {
@@ -20,14 +21,18 @@ namespace EngineIgnitor
         private const string KeyToolbarIconInactive = "toolbarInactiveIcon";
 
         private const string ToolTip = "EngineIgnitor";
+#if false
         private ApplicationLauncherButton engineIgnitorStockButton;
         private IButton engineIgnitorBlizzyButton;
 
         private string toolbarIconActive;
         private string toolbarIconInactive;
-
+#endif
         public static bool IgnitorActive = true;
 
+        ToolbarControl toolbarControl;
+
+#if false
         enum ToolBarSelected { stock, blizzy, none };
         ToolBarSelected activeToolbarType = ToolBarSelected.none;
 
@@ -82,10 +87,12 @@ namespace EngineIgnitor
             activeToolbarType = ToolBarSelected.stock;
             this.UpdateToolbarIcon();
         }
+#endif
         public void Awake()
         {
             if (!HighLogic.CurrentGame.Parameters.CustomParams<EI>().allowTestMode)
                 return;
+#if false
             // Are we using Blizzy's Toolbar?
             //ToolbarIsStock = !HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy;
 
@@ -97,23 +104,41 @@ namespace EngineIgnitor
             {
                 SetStockSettings();
             }
-
+#endif
         }
 
         public void Start()
         {
             if (!HighLogic.CurrentGame.Parameters.CustomParams<EI>().allowTestMode)
                 return;
-
+#if false
             // this is needed because of a bug in KSP with event onGUIAppLauncherReady.
             if (activeToolbarType == ToolBarSelected.stock)
             {
                 OnGUIAppLauncherReady();
             }
+#endif
+            toolbarControl = gameObject.AddComponent<ToolbarControl>();
+            toolbarControl.AddToAllToolbars(ToggleIgnitorActive, ToggleIgnitorActive,
+                        ApplicationLauncher.AppScenes.FLIGHT |
+                        ApplicationLauncher.AppScenes.MAPVIEW,
+                        "EngineIgnitor",
+                        "flightPlanButton",
+                        StockToolbarIconInactive,
+                        StockToolbarIconActive,
+                        BlizzyToolbarIconInactive,
+                        BlizzyToolbarIconActive,
+
+                        "Engine Igniter"
+                );
+            toolbarControl.UseBlizzy(HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy);
         }
 
         public void OnDestroy()
         {
+            toolbarControl.OnDestroy();
+            Destroy(toolbarControl);
+#if false
             if (activeToolbarType == ToolBarSelected.stock)
             {
                 GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
@@ -125,8 +150,9 @@ namespace EngineIgnitor
             {
                 RemoveBlizzyButton();
             }
+#endif
         }
-
+#if false
         private void UpdateToolbarIcon()
         {
             if (activeToolbarType == ToolBarSelected.blizzy)
@@ -166,13 +192,16 @@ namespace EngineIgnitor
                 engineIgnitorStockButton = null;
             }
         }
-
+#endif
         void ToggleIgnitorActive()
         {
             IgnitorActive = !IgnitorActive;
+            ScreenMessages.PostScreenMessage("IgnitorActive: " + IgnitorActive, 3f, ScreenMessageStyle.UPPER_CENTER);
+#if false
             UpdateToolbarIcon();
-
+#endif
         }
+#if false
         private void engineIgnitorButton_Click(ClickEvent e)
         {
             this.ToggleIgnitorActive();
@@ -205,9 +234,12 @@ namespace EngineIgnitor
                 SetStockSettings();
             }
         }
-
+#endif
         public void OnGUI()
         {
+            if (toolbarControl != null)
+                toolbarControl.UseBlizzy(HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy);
+#if false
             if (ToolbarManager.ToolbarAvailable && activeToolbarType == ToolBarSelected.stock && HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy)
             {
                 ToolbarTypeToggle();
@@ -216,6 +248,7 @@ namespace EngineIgnitor
             {
                 ToolbarTypeToggle();
             }
+#endif
         }
     }
 }
