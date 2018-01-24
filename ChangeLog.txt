@@ -1,3 +1,6 @@
+1.3.2.4
+	Fixed problem where multiple rocket engines couldn't be fired via an external ignitor
+
 1.3.2.3
 	Thanks to user @eberkain for the following:
 		Mk2 Expansion /w Tech Upgrades

@@ -4,27 +4,27 @@ using System;
 
 namespace EngineIgnitor
 {
-	public class ModuleExternalIgnitor : PartModule
-	{
-		public static List<ModuleExternalIgnitor> ExternalIgnitors = new List<ModuleExternalIgnitor>();
+    public class ModuleExternalIgnitor : PartModule
+    {
+        public static List<ModuleExternalIgnitor> ExternalIgnitors = new List<ModuleExternalIgnitor>();
 
-		[KSPField(isPersistant = false)]
-		public int IgnitionsAvailable = -1;
+        [KSPField(isPersistant = false)]
+        public int IgnitionsAvailable = -1;
 
-		[KSPField(isPersistant = true)]
-		public int IgnitionsRemained = -1;
+        [KSPField(isPersistant = true)]
+        public int IgnitionsRemained = -1;
 
-		[KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Ignitions")]
-		private string _ignitionsAvailableString = "Infinite";
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Ignitions")]
+        private string _ignitionsAvailableString = "Infinite";
 
-		[KSPField(isPersistant = false)]
-		public string IgnitorType = "universal";
+        [KSPField(isPersistant = false)]
+        public string IgnitorType = "universal";
 
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Engines in range")]
         public string _enginesInRange = "NO";
 
         [KSPField(guiName = "Ignitor range", isPersistant = false, guiActiveEditor = true, guiActive = true, guiFormat = "N1")]
-		public float IgniteRange = 1f;
+        public float IgniteRange = 1f;
 
         [KSPField(guiName = "Distance to engine", isPersistant = false, guiActiveEditor = true, guiActive = true, guiFormat = "N1")]
         public float _distanceToEngine;
@@ -32,26 +32,28 @@ namespace EngineIgnitor
         public void Start()
         {
             if (HighLogic.LoadedSceneIsFlight)
-			{
-				if(ExternalIgnitors.Contains(this) == false)
-					ExternalIgnitors.Add(this);
-			}
+            {
+                if (ExternalIgnitors.Contains(this) == false)
+                    ExternalIgnitors.Add(this);
+            }
         }
 
         private void Update()
         {
             if (!Control.IgnitorActive)
                 return;
+            _distanceToEngine = 999;
+
             if (HighLogic.LoadedSceneIsEditor && EditorLogic.fetch.ship != null)
             {
                 foreach (var p in EditorLogic.fetch.ship.parts)
                 {
                     if (p.FindModuleImplementing<ModuleEngineIgnitor>() == true)
                     {
-                        _distanceToEngine = Vector3.Distance(part.transform.position, p.transform.position);
+                        _distanceToEngine = Math.Min(_distanceToEngine, Vector3.Distance(part.transform.position, p.transform.position));
                     }
                 }
-                if (Math.Round(_distanceToEngine,1) <= IgniteRange && EditorLogic.fetch.ship != null) _enginesInRange = "YES";
+                if (Math.Round(_distanceToEngine, 1) <= IgniteRange && EditorLogic.fetch.ship != null) _enginesInRange = "YES";
                 else _enginesInRange = "NO";
             }
             else
@@ -60,33 +62,33 @@ namespace EngineIgnitor
                 {
                     if (p.FindModuleImplementing<ModuleEngineIgnitor>() == true)
                     {
-                        _distanceToEngine = Vector3.Distance(part.transform.position, p.transform.position);
+                        _distanceToEngine = Math.Min(_distanceToEngine, Vector3.Distance(part.transform.position, p.transform.position));
                     }
                 }
-                if (Math.Round(_distanceToEngine,1) <= IgniteRange && vessel != null) _enginesInRange = "YES";
+                if (Math.Round(_distanceToEngine, 1) <= IgniteRange && vessel != null) _enginesInRange = "YES";
                 else _enginesInRange = "NO";
             }
 
             if (HighLogic.LoadedSceneIsFlight)
             {
                 if (IgnitionsRemained != -1)
-					_ignitionsAvailableString = IgnitorType + " - " + IgnitionsRemained + "/" + IgnitionsAvailable;
-				else
-					_ignitionsAvailableString = IgnitorType + " - " + "Infinite";
+                    _ignitionsAvailableString = IgnitorType + " - " + IgnitionsRemained + "/" + IgnitionsAvailable;
+                else
+                    _ignitionsAvailableString = IgnitorType + " - " + "Infinite";
 
-				if (vessel == null)
-				{
-					ExternalIgnitors.Remove(this);
-				}
-			}
-		}
+                if (vessel == null)
+                {
+                    ExternalIgnitors.Remove(this);
+                }
+            }
+        }
 
-		public override string GetInfo()
-		{
-			if (IgnitionsAvailable != -1)
-				return "Can ignite for " + IgnitionsAvailable + " time(s).\n" + "Ignitor type: " + IgnitorType + "\n";
-			else
-				return "Can ignite for infinite times.\n" + "Ignitor type: " + IgnitorType + "\n";
-		}
-	}
+        public override string GetInfo()
+        {
+            if (IgnitionsAvailable != -1)
+                return "Can ignite for " + IgnitionsAvailable + " time(s).\n" + "Ignitor type: " + IgnitorType + "\n";
+            else
+                return "Can ignite for infinite times.\n" + "Ignitor type: " + IgnitorType + "\n";
+        }
+    }
 }

@@ -308,6 +308,7 @@ namespace EngineIgnitor
                 //Log.Info("Angle: " + a);
                 //Log.Info("vessel.geeForce_immediate: " + vessel.geeForce_immediate + ", vessel.geeForce: " + vessel.geeForce);
                 //Log.Info("Math.Cos(a) * vessel.geeForce_immediate: " + (Math.Cos(a) * vessel.geeForce_immediate).ToString());
+                Log.Info("CheckUllageState, geeforceVectorAngle: " + a.ToString("N1") + ", stability: " + (_fuelFlowStability * 100).ToString("N1"));
                 if (a < 90 && Math.Cos(a) * vessel.geeForce_immediate >= 0.01 || vessel.Landed)
                 {
                     UllageState = "Stable";
@@ -449,8 +450,7 @@ namespace EngineIgnitor
 
         private void IgnitionResult(bool isExternal, bool isIgnited)
         {
-            Log.Info("IgnitionResult, isExternal: " + isExternal + ", isIgnited: " + isIgnited
-                );
+          
             if (_engineState == EngineIgnitionState.NOT_IGNITED && ((IgnitionsRemained == 0 && !isExternal) || !isIgnited))
             {
                 if (_engine.EngineIgnited)
@@ -474,6 +474,9 @@ namespace EngineIgnitor
         private bool CheckExternalIgnitor()
         {
             InRange = false;
+            Vector3 r;
+
+            Log.Info("CheckExternalIgnitor 1, count: " + ModuleExternalIgnitor.ExternalIgnitors.Count);
             for (int i = 0; i < ModuleExternalIgnitor.ExternalIgnitors.Count; ++i)
             {
                 ModuleExternalIgnitor itor = ModuleExternalIgnitor.ExternalIgnitors[i];
@@ -483,18 +486,35 @@ namespace EngineIgnitor
                     --i;
                 }
             }
+            Log.Info("CheckExternalIgnitor 2, count: " + ModuleExternalIgnitor.ExternalIgnitors.Count);
+
             foreach (ModuleExternalIgnitor extIgnitor in ModuleExternalIgnitor.ExternalIgnitors)
             {
                 if (extIgnitor.vessel == null || extIgnitor.vessel.transform == null || extIgnitor.part == null ||
                     extIgnitor.part.transform == null)
                     ModuleExternalIgnitor.ExternalIgnitors.Remove(extIgnitor);
                 Vector3 range = new Vector3();
+                bool b = false;
                 if (extIgnitor.vessel != null && extIgnitor.part != null && extIgnitor.vessel.transform != null)
-                    range = extIgnitor.vessel.transform.TransformPoint(extIgnitor.part.orgPos) -
+                {
+                    r = extIgnitor.vessel.transform.TransformPoint(extIgnitor.part.orgPos) -
                              _engine.vessel.transform.TransformPoint(_engine.part.orgPos);
+                    if (!b)
+                    {
+                        range = r;
+                        b = true;
+                    }
+                    else
+                    {
+                        if (r.magnitude < range.magnitude)
+                            range = r;
+                    }
+                }
+                
                 InRange = range.magnitude < extIgnitor.IgniteRange;
+                if (InRange) return true;
             }
-            if (InRange) return true;
+            
             return false;
         }
 
