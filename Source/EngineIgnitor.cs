@@ -181,7 +181,7 @@ namespace EngineIgnitor
                 resourceRequired = "EC required for ignition: " + ECforIgnition;
 
 
-            var ullageInfo = UseUllageSimulation ? "Need settling down fuel before ignition." : "Ullage simulation disabled.";
+            var ullageInfo = (HighLogic.CurrentGame.Parameters.CustomParams<EI>().useUllage & UseUllageSimulation) ? "Need settling down fuel before ignition." : "Ullage simulation disabled.";
 
             Vector2 screenCoords = Camera.main.WorldToScreenPoint(part.transform.position);
             Rect ignitorInfoRect = new Rect(screenCoords.x - 100.0f, Screen.height - screenCoords.y - 10, 200.0f, 20.0f);

@@ -34,6 +34,9 @@ namespace EngineIgnitor
         [GameParameters.CustomParameterUI("Use Blizzy Toolbar", toolTip ="If available (will require scene change to activate)")]
         public bool useBlizzy = false;
 
+        [GameParameters.CustomParameterUI("Use Ullage simulation", toolTip = "If enabled, some engines will not file if fuel is unstable")]
+        public bool useUllage = true;
+
 
 
 

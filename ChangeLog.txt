@@ -1,3 +1,10 @@
+1.3.3
+	Added option to disable Ullage simulation for all engines
+	Thanks to forum user @Nittany Tiger for the following:
+	
+	    Add configs for OPT's OPT-E J Linear Aerospike and OPT-E SCOOP Rocket "ARI-75b".
+		Update MM_Bluedog.cfg, Now includes configs for Agena A, Agena D, Atlas "Bossart" engines, Titan LR-87 single chamber vacuum, Saturn F-1A, J-2S, J-2A-2, J-2 sea level, and J-2T-250K.
+
 1.3.2.4
 	Fixed problem where multiple rocket engines couldn't be fired via an external ignitor
 
