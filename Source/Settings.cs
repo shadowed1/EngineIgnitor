@@ -31,9 +31,6 @@ namespace EngineIgnitor
             toolTip = " If enabled, then there will be a toolbar button (either Blizzy or stock) to enable a test mode, which essentially disables this mod.\n (may require scene change to activate)")]
         public bool allowTestMode = false;
 
-        [GameParameters.CustomParameterUI("Use Blizzy Toolbar", toolTip ="If available (will require scene change to activate)")]
-        public bool useBlizzy = false;
-
         [GameParameters.CustomParameterUI("Use Ullage simulation", toolTip = "If enabled, some engines will not file if fuel is unstable")]
         public bool useUllage = true;
 

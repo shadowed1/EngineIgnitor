@@ -10,8 +10,11 @@ namespace EngineIgnitor
     [KSPAddon(KSPAddon.Startup.Flight | KSPAddon.Startup.EditorAny, false)]
     public class Control : MonoBehaviour
     {
+        internal const string MODID = "EngineIgnitor";
+        internal const string MODNAME = "Engine Igniter";
+
         //internal static bool ToolbarIsStock = true;
-       // internal static bool ToolbarTypeToggleActive = false;
+        // internal static bool ToolbarTypeToggleActive = false;
         private const string BlizzyToolbarIconActive = "EngineIgnitor/Icons/ignitor_on_24";
         private const string BlizzyToolbarIconInactive = "EngineIgnitor/Icons/ignitor_off_24";
         private const string StockToolbarIconActive = "EngineIgnitor/Icons/ignitor_on_32";
@@ -122,16 +125,16 @@ namespace EngineIgnitor
             toolbarControl.AddToAllToolbars(ToggleIgnitorActive, ToggleIgnitorActive,
                         ApplicationLauncher.AppScenes.FLIGHT |
                         ApplicationLauncher.AppScenes.MAPVIEW,
-                        "EngineIgnitor",
-                        "flightPlanButton",
+                        MODID,
+                        "engineIgnitorButton",
                         StockToolbarIconInactive,
                         StockToolbarIconActive,
                         BlizzyToolbarIconInactive,
                         BlizzyToolbarIconActive,
 
-                        "Engine Igniter"
+                        MODNAME
                 );
-            toolbarControl.UseBlizzy(HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy);
+            
         }
 
         public void OnDestroy()
@@ -235,20 +238,6 @@ namespace EngineIgnitor
             }
         }
 #endif
-        public void OnGUI()
-        {
-            if (toolbarControl != null)
-                toolbarControl.UseBlizzy(HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy);
-#if false
-            if (ToolbarManager.ToolbarAvailable && activeToolbarType == ToolBarSelected.stock && HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy)
-            {
-                ToolbarTypeToggle();
-            }
-            if ( (!ToolbarManager.ToolbarAvailable || !HighLogic.CurrentGame.Parameters.CustomParams<EI>().useBlizzy) && activeToolbarType == ToolBarSelected.blizzy)
-            {
-                ToolbarTypeToggle();
-            }
-#endif
-        }
+
     }
 }

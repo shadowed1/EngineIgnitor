@@ -1,3 +1,9 @@
+1.3.3.1
+	Updated for 1.4.1
+	Updated for new version of ToolbarController
+	Removed OnGUI as not needed anymore
+	Fixed internal button name (was conflicting with flightplan)
+
 1.3.3
 	Added option to disable Ullage simulation for all engines
 	Thanks to forum user @Nittany Tiger for the following:
