@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using KSP.IO;
 using UnityEngine;
 
 namespace EngineIgnitor
@@ -404,7 +403,7 @@ namespace EngineIgnitor
                         if (EnoughECforIgnition())
                         {
 
-                            ec = part.RequestResource(ecId, ECforIgnition);
+                            ec = part.RequestResource(ecId, (double)ECforIgnition);
                             if (ec != ECforIgnition)
                             {
                                 ScreenMessages.PostScreenMessage("Do not have enough Electrical Charge", 3f, ScreenMessageStyle.UPPER_CENTER);
@@ -533,7 +532,7 @@ namespace EngineIgnitor
             {
                 if (IgnitionsRemained < IgnitionsAvailable && engineIgnitorsAmountEva > 0)
                 {
-                    eva.rootPart.RequestResource("EngineIgnitors", 1);
+                    eva.rootPart.RequestResource("EngineIgnitors", (double)1);
                     IgnitionsRemained++;
                 }
                 else
