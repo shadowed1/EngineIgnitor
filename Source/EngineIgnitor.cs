@@ -65,6 +65,7 @@ namespace EngineIgnitor
 
         private float _fuelFlowStability;
         private float _oldFuelFlowStability;
+        //private float fuelFlowRelativePosition = 0f;
 
         // List of all engines. So we can pick the one we are corresponding to.
         private List<EngineWrapper> _engines = new List<EngineWrapper>();
@@ -84,6 +85,7 @@ namespace EngineIgnitor
                 return;
             foreach (PartModule module in part.Modules)
             {
+                
                 if (module.moduleName == "ModuleEnginesFX") //find partmodule engine on the part
                 {
                     Log.Info("Adding ModuleEnginesFX, engineID:" + ((ModuleEnginesFX)module).engineID);
@@ -296,22 +298,31 @@ namespace EngineIgnitor
         {
             if (UseUllageSimulation)
             {
-                Vector3d x = new Vector3d();
+                Vector3d thrustDirection = _engine.ForwardTransform;
+                Vector3d geeVector = vessel.acceleration_immediate - vessel.graviticAcceleration;
+                var a = 180 - Vector3.Angle(thrustDirection, geeVector);
+                //if (_engine.PreviousTranformPosition == null) 
+                //{
+                //    _engine.PreviousTranformPosition = _engine.Transform.position;
+                //} 
+                //Vector3 currentEnginePosition = _engine.Transform.position;
+                //Vector3 centrifugalVector = (currentEnginePosition - vessel.CoM);
+                //float distanceComToEngine = centrifugalVector.magnitude;
+                //Vector3 tangentialVelocity = (currentEnginePosition - _engine.PreviousTranformPosition) / Time.fixedDeltaTime;
+                //float centrifugalGee = Mathf.Pow(tangentialVelocity.magnitude, 2) / distanceComToEngine;
+                //Vector3 centrifugalAcceleration = centrifugalVector.normalized * centrifugalGee;
+                //geeVector = geeVector + centrifugalAcceleration;
 
-                x = _engine.ForwardTransform;
-
-                Vector3d geeForceVector = vessel.obt_velocity - vessel.lastVel - vessel.graviticAcceleration / TimeWarp.fixedDeltaTime;
-                var a = 180 - Vector3.Angle(x, geeForceVector);
-
-                //Log.Info("vessel.acceleration_immediate: " + vessel.acceleration_immediate);
-                //Log.Info("Angle: " + a);
-                //Log.Info("vessel.geeForce_immediate: " + vessel.geeForce_immediate + ", vessel.geeForce: " + vessel.geeForce);
-                //Log.Info("Math.Cos(a) * vessel.geeForce_immediate: " + (Math.Cos(a) * vessel.geeForce_immediate).ToString());
-                Log.Info("CheckUllageState, geeforceVectorAngle: " + a.ToString("N1") + ", stability: " + (_fuelFlowStability * 100).ToString("N1"));
-                if (a < 90 && Math.Cos(a) * vessel.geeForce_immediate >= 0.01 || vessel.Landed)
+                var gees = geeVector.magnitude / vessel.graviticAcceleration.magnitude;
+                var geesInEngineDirection = Math.Cos(a * Math.PI / 180) * gees;
+                //var fuelSpeedInstant = gees / Time.fixedDeltaTime;
+                //fuelFlowRelativePosition = distanceComToEngine - (float)fuelSpeedInstant;
+               // Debug.Log("a: " + a + ", gees: "+ gees + ", a_i: " + vessel.acceleration_immediate.magnitude);
+                if (a < 90 && geesInEngineDirection >= 0.01 || vessel.Landed)
                 {
                     UllageState = "Stable";
                     _fuelFlowStability = 1.0f;
+                   // fuelFlowRelativePosition = 0;
                     return;
                 }
                 else
