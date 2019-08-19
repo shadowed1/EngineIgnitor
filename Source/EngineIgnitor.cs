@@ -65,7 +65,7 @@ namespace EngineIgnitor
 
         private float _fuelFlowStability;
         private float _oldFuelFlowStability;
-        private float fuelFlowRelativePosition = 0f;
+        //private float fuelFlowRelativePosition = 0f;
 
         // List of all engines. So we can pick the one we are corresponding to.
         private List<EngineWrapper> _engines = new List<EngineWrapper>();
