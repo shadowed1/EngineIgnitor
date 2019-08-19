@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
+//using UnityEngine;
 
 namespace EngineIgnitor
 {
@@ -47,13 +47,13 @@ namespace EngineIgnitor
             }
             //set { engineFX.EngineIgnited = value; }
         }
-        public Vector3 PreviousTranformPosition { get; set; }
-        public Transform Transform
-        {
-            get {
-                return engine.transform;
-            }
-        }
+        //public Vector3 PreviousTranformPosition { get; set; }
+        //public Transform Transform
+        //{
+        //    get {
+        //        return engine.transform;
+        //    }
+        //}
 
         public Vector3d ForwardTransform
         {
