@@ -9,3 +9,8 @@
     %IgnitorType = Internal
   }
 }
+
+@PART[*]:HAS[@MODULE[ModuleExternalIgnitor]]:LAST
+{
+  !MODULE[ModuleExternalIgnitor]
+}
