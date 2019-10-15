@@ -1,0 +1,11 @@
+// Optional patch to make all engines that require external ignitions use internal. Useful if you want to air start sea level engines.
+// To use, Change the file extension from .cfg.disabled to just .cfg . Suggest placing into a personal patches folder so its not overwritten each time Engine Ignitor updates.
+// By Zorg
+@PART[*]:HAS[@MODULE[ModuleEngineIgnitor]]:LAST
+{
+  @MODULE[ModuleEngineIgnitor]:HAS[#IgnitionsAvailable[0]]
+  {
+    @IgnitionsAvailable = 1
+    %IgnitorType = Internal
+  }
+}
