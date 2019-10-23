@@ -1,0 +1,8 @@
+//Optional patch to remove EC requirement. EC causing bugs at time this was written. Also useful as a personal preferance. Change file extension from .cfg.disabled to just .cfg to use. Can place anywhere in gamedata (such as a personal patches folder) so it wont be overwritten when EI updates.
+@PART[*]:HAS[@MODULE[ModuleEngineIgnitor]]:FINAL
+{
+  @MODULE[ModuleEngineIgnitor]
+  {
+    %ECforIgnition = 0
+  }
+}
