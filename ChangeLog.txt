@@ -1,3 +1,37 @@
+1.3.5.2
+	Thanks to github user @zorg2044 for all of the following:
+		Add support for Knes, CryoEngines, NFLV, Restock plus, ReDirect and more.
+		add external ignitor module to free standing MLP structures
+		Some MM hosuekeeping. remove deprecated cryoengines
+		Update clamps configs
+		optional remove EC patch
+		some more rebalancing
+		NFLV rebalance
+		tantares ec balance
+		fix unbalanced bracket
+		add ReStockPlus
+		add Making history
+		Update stock revamped engines, NFLV ignitor type descr
+		Split off Part Overhauls
+		Add support for Fuji
+		Update reDIRECT
+		Add NEEDS to new configs
+		Add EC to CryoEngines
+		remove FINAL from remaining patches
+		Add EC to Knes configs
+		Add NF spacecraft
+		Update Tantares spacecraft
+		Update all internal patch
+		TantaresLV update
+		remove final from RAPIER, increase range on FASA clamps
+		Optional all internal ignitions patch
+		Increase ignition range for stock clamps
+		Modular Launch pads support
+		remove FINAL from stock patches
+		Add Knes, update NFLV and CryoEngines
+		Near Future Launch Vehicles configs
+		New CryoEngines
+
 1.3.5.1 
 	Thanks to github user @Rockttman for this:
 		Bluedog Design Bureau configs for the mod are old, out of date, and inaccurate to real world ignition data. Configs are being revised and will be bundled with Bluedog compatibility patches from now on.
