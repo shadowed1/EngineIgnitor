@@ -1,5 +1,14 @@
 ChangeLog
 
+1.3.7.1
+	Fixed typo in settings page (thanks @Atlessa)
+	Thanks for forum user @coyote21 for this:
+		Added missing config for the LV-303 Pub Engine from Restock Plus
+		Added missing configs for the Near Future Launch Vehicles
+	Renamed DLL for CKAN compatibility
+	Added AssemblyFileVersion
+	Updated version file for 1.12
+
 1.3.6.2
 	Really did the MiniAVC update
 
