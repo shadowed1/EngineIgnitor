@@ -1,5 +1,11 @@
 ChangeLog
 
+1.3.7.3
+	Thanks to github user @zorg2044 for this:
+		New configs for Commonwealth Rockets 
+		Sets NFLV engines with spark ignitors to 1000 instead of undefined ignitions.
+
+
 1.3.7.2
 	Thanks to github user @SiCaRiO31 for this:
 		Fixed names of engines which were changed in last patch:
